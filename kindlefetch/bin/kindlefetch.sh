@@ -609,13 +609,45 @@ download_book() {
     
     clean_title=$(sanitize_filename "$title" | tr -d ' ')
     
+    # Ask user if they want to rename the file
+    echo -n "Would you like to rename the file? [y/n]: "
+    read rename_choice
+    
+    if [ "$rename_choice" = "y" ] || [ "$rename_choice" = "Y" ]; then
+        echo -n "Enter new filename (without extension): "
+        read new_filename
+        
+        # Sanitize the user input to create a valid filename
+        if [ -n "$new_filename" ]; then
+            clean_title=$(sanitize_filename "$new_filename")
+            echo "File will be saved as: $clean_title.$format"
+        else
+            echo "Empty filename provided, using original name: $clean_title.$format"
+        fi
+    fi
+    
     if [ ! -w "$KINDLE_DOCUMENTS" ]; then
         echo "Error: No write permission in $KINDLE_DOCUMENTS" >&2
         return 1
     fi
     
+    # Store original title for folder name if user renamed the file
+    original_clean_title=$(sanitize_filename "$title" | tr -d ' ')
+    folder_name="$clean_title"
+    
+    # For subfolders, we need to decide whether to use original or new name
     if [ "$CREATE_SUBFOLDERS" = "true" ]; then
-        book_folder="$KINDLE_DOCUMENTS/$clean_title"
+        # If user renamed the file, ask if they want to use the same name for the folder
+        if [ "$rename_choice" = "y" ] || [ "$rename_choice" = "Y" ]; then
+            echo -n "Use the same name for the folder? [Y/n]: "
+            read folder_choice
+            
+            if [ "$folder_choice" = "n" ] || [ "$folder_choice" = "N" ]; then
+                folder_name="$original_clean_title"
+            fi
+        fi
+        
+        book_folder="$KINDLE_DOCUMENTS/$folder_name"
         mkdir -p "$book_folder" || {
             echo "Error: Failed to create folder '$book_folder'" >&2
             return 1
