@@ -12,6 +12,7 @@ BOOK_SECOND_SOURCE=""
 CREATE_SUBFOLDERS=false
 CONDENSED_OUTPUT=false
 DEBUG_MODE=false
+FILETYPES="pdf,epub,mobi,azw,azw3,txt,doc,docx,rtf"
 
 UPDATE_AVAILABLE=false
 
@@ -198,6 +199,7 @@ save_config() {
     echo "CONDENSED_OUTPUT=\"$CONDENSED_OUTPUT\"" >> "$CONFIG_FILE"
     echo "BOOK_FIRST_SOURCE=\"$BOOK_FIRST_SOURCE\"" >> "$CONFIG_FILE"
     echo "BOOK_SECOND_SOURCE=\"$BOOK_SECOND_SOURCE\"" >> "$CONFIG_FILE"
+    echo "FILETYPES=\"$FILETYPES\"" >> "$CONFIG_FILE"
 }
 
 # Settings menu
@@ -222,10 +224,11 @@ settings_menu() {
         echo "2. Toggle subfolders for books: $CREATE_SUBFOLDERS"
         echo "3. Toggle debug mode: $DEBUG_MODE"
         echo "4. Toggle condensed output: $CONDENSED_OUTPUT"
-        echo "5. First book source: $BOOK_FIRST_SOURCE"
-        echo "6. Second book source: $BOOK_SECOND_SOURCE"
-        echo "7. Check for updates"
-        echo "8. Back to main menu"
+echo "5. First book source: $BOOK_FIRST_SOURCE"
+echo "6. Second book source: $BOOK_SECOND_SOURCE"
+echo "7. Configure allowed file types: $FILETYPES"
+echo "8. Check for updates"
+echo "9. Back to main menu"
         echo ""
         echo -n "Choose option: "
         read choice
@@ -286,6 +289,17 @@ settings_menu() {
                 save_config
                 ;;
             7)
+                echo "Current allowed file types: $FILETYPES"
+                echo -n "Enter new file types (comma-separated, e.g. pdf,epub,mobi): "
+                read new_types
+                if [ -n "$new_types" ]; then
+                    FILETYPES="$new_types"
+                    save_config
+                    echo "File types updated"
+                    sleep 2
+                fi
+                ;;
+            8)
                 check_for_updates
                 if [ "$UPDATE_AVAILABLE" = true ]; then
                     echo "Update is available! Would you like to update? [y/N]: "
@@ -308,7 +322,7 @@ settings_menu() {
                     sleep 2
                 fi
                 ;;
-            8)
+            9)
                 break
                 ;;
 
@@ -367,7 +381,20 @@ display_books() {
     
     echo "--------------------------------"
     echo ""
-    echo "Page $2 of $5"
+    
+    # Check if we have a multi-page result
+    if [ -f "/tmp/last_search_pages_fetched" ]; then
+        pages_fetched=$(cat /tmp/last_search_pages_fetched 2>/dev/null || echo "$2")
+        if [ "$(echo "$pages_fetched" | grep -o ',' | wc -l)" -gt 0 ]; then
+            # Format the pages list nicely
+            formatted_pages=$(echo "$pages_fetched" | tr ',' ' ' | sed 's/ /, /g')
+            echo "Results from pages $formatted_pages"
+        else
+            echo "Page $2 of $5"
+        fi
+    else
+        echo "Page $2 of $5"
+    fi
     echo ""
     
     if [ "$3" = "true" ]; then
@@ -484,6 +511,9 @@ delete_directory() {
 search_books() {
     local query="$1"
     local page="${2:-1}"
+    local min_results=10  # Minimum number of filtered results to show
+    local max_pages=5     # Maximum number of pages to fetch for getting filtered results
+    local last_page=1
     
     if [ -z "$query" ]; then
         echo -n "Enter search query: "
@@ -494,28 +524,25 @@ search_books() {
         }
     fi
     
-    echo "Searching for '$query' (page $page)..."
+    echo "Searching for '$query'..."
     
+    # Store fetched pages in array
+    local pages_fetched="$current_page"
+    local result_count=0
+    local current_page=$page
+    local first_page=$page
+    local filtered_has_prev=false
+    local filtered_has_next=false
+    
+    # Get first page and determine last page
     encoded_query=$(echo "$query" | sed 's/ /+/g')
-    search_url="$BOOK_FIRST_SOURCE/search?index=&page=${page}&q=${encoded_query}&display=&src=lgli&sort="
+    search_url="$BOOK_FIRST_SOURCE/search?index=&page=${current_page}&q=${encoded_query}&display=&src=lgli&sort="
     local html_content=$(curl --insecure -s -H "User-Agent: Mozilla/5.0" "$search_url")
     
-    local last_page=$(echo "$html_content" | grep -o 'page=[0-9]\+"' | sort -nr | head -1 | cut -d= -f2 | tr -d '"')
+    last_page=$(echo "$html_content" | grep -o 'page=[0-9]\+"' | sort -nr | head -1 | cut -d= -f2 | tr -d '"')
     [ -z "$last_page" ] && last_page=1
-    
-    local has_prev="false"
-    [ "$page" -gt 1 ] && has_prev="true"
-    
-    local has_next="false"
-    [ "$page" -lt "$last_page" ] && has_next="true"
 
-    echo "$query" > /tmp/last_search_query
-    echo "$page" > /tmp/last_search_page
-    echo "$last_page" > /tmp/last_search_last_page
-    echo "$has_next" > /tmp/last_search_has_next
-    echo "$has_prev" > /tmp/last_search_has_prev
-    
-    local books=$(echo "$html_content" | awk '
+    local page_results=$(echo "$html_content" | awk -v allowed="$(echo "$FILETYPES" | tr '[:upper:]' '[:lower:]')" -v current_page="$current_page" '
         BEGIN {
             RS="<div class=\"h-\\[110px\\] flex flex-col justify-center \">";
             FS=">";
@@ -572,7 +599,26 @@ search_books() {
                 }
             }
             
-            if (title != "") {
+            # Convert format to lowercase for case-insensitive comparison
+            tolower_format = format
+            gsub(/"/, "", tolower_format)
+            tolower_format = tolower(tolower_format)
+            
+            # Check if format is in allowed types
+            is_allowed = 0
+            if (allowed == "*" || allowed == "") {
+                is_allowed = 1
+            } else {
+                split(allowed, allowed_arr, ",")
+                for (i in allowed_arr) {
+                    if (index(tolower_format, tolower(allowed_arr[i])) > 0) {
+                        is_allowed = 1
+                        break
+                    }
+                }
+            }
+            
+            if (title != "" && is_allowed) {
                 if (book_count > 0) printf ",\n"
                 printf "  {\"author\":\"%s\",\"format\":%s,\"md5\":\"%s\",\"title\":\"%s\",\"url\":\"$BOOK_FIRST_SOURCE%s\"}", 
                     author, format, md5, title, link
@@ -582,8 +628,143 @@ search_books() {
         END { print "\n]" }
     ')
     
-    echo "$books" > /tmp/search_results.json
-    display_books "$books" "$page" "$has_prev" "$has_next" "$last_page"
+    local all_results="$page_results"
+    result_count=$(echo "$page_results" | grep -o '"title":' | wc -l)
+    
+    # If we don't have enough results and there are more pages, fetch them
+    while [ $result_count -lt $min_results ] && [ $current_page -lt $last_page ] && [ $current_page -lt $((first_page + max_pages)) ]; do
+        current_page=$((current_page + 1))
+        echo "Fetching additional results from page $current_page..."
+        
+        search_url="$BOOK_FIRST_SOURCE/search?index=&page=${current_page}&q=${encoded_query}&display=&src=lgli&sort="
+        html_content=$(curl --insecure -s -H "User-Agent: Mozilla/5.0" "$search_url")
+        
+        page_results=$(echo "$html_content" | awk -v allowed="$(echo "$FILETYPES" | tr '[:upper:]' '[:lower:]')" -v current_page="$current_page" '
+            BEGIN {
+                RS="<div class=\"h-\\[110px\\] flex flex-col justify-center \">";                FS=">";                book_count = 0
+            }
+            NR > 1 {
+                link = ""; md5 = ""; title = ""; author = ""; format = "null"
+                
+                if ($0 ~ /<a href="\/md5\//) {
+                    link_start = index($0, "/md5/")
+                    link_end = index(substr($0, link_start), "\"")
+                    if (link_end > 0) {
+                        link = substr($0, link_start, link_end - 1)
+                        md5 = substr(link, 6, 32)
+                    }
+                }
+                
+                if ($0 ~ /<h3 class=/) {
+                    title_start = index($0, "<h3")
+                    title_part = substr($0, title_start)
+                    title_start = index(title_part, ">") + 1
+                    title_end = index(title_part, "</h3>")
+                    if (title_end > 0) {
+                        title = substr(title_part, title_start, title_end - title_start)
+                        gsub(/^[[:space:]]+|[[:space:]]+$/, "", title)
+                        gsub(/"/, "\\\"", title)
+                        gsub(/•/, "\\u2022", title)
+                    }
+                }
+                
+                if ($0 ~ /<div class=.*italic/) {
+                    author_start = index($0, "italic")
+                    author_part = substr($0, author_start)
+                    author_start = index(author_part, ">") + 1
+                    author_end = index(author_part, "</div>")
+                    if (author_end > 0) {
+                        author = substr(author_part, author_start, author_end - author_start)
+                        gsub(/^[[:space:]]+|[[:space:]]+$/, "", author)
+                        gsub(/"/, "\\\"", author)
+                    }
+                }
+                
+                if ($0 ~ /text-gray-500">/) {
+                    format_start = index($0, "text-gray-500\">") + 15
+                    format_part = substr($0, format_start)
+                    format_end = index(format_part, "<")
+                    if (format_end > 0) {
+                        format_line = substr(format_part, 1, format_end - 1)
+                        if (match(format_line, /\.([a-z0-9]+),/)) {
+                            format = substr(format_line, RSTART + 1, RLENGTH - 2)
+                            format = "\"" format "\""
+                        }
+                    }
+                }
+                
+                tolower_format = format
+                gsub(/"/, "", tolower_format)
+                tolower_format = tolower(tolower_format)
+                
+                is_allowed = 0
+                if (allowed == "*" || allowed == "") {
+                    is_allowed = 1
+                } else {
+                    split(allowed, allowed_arr, ",")
+                    for (i in allowed_arr) {
+                        if (index(tolower_format, tolower(allowed_arr[i])) > 0) {
+                            is_allowed = 1
+                            break
+                        }
+                    }
+                }
+                
+                if (title != "" && is_allowed) {
+                    printf "{\"author\":\"%s\",\"format\":%s,\"md5\":\"%s\",\"title\":\"%s\",\"url\":\"%s%s\"}\n",
+                        author, format, md5, title, ENVIRON["BOOK_FIRST_SOURCE"], link
+                }
+            }
+        ')
+        
+        # Only include non-empty results
+        if [ -n "$page_results" ]; then
+            # Proper JSON merging for multi-page results
+            if [ -n "$all_results" ]; then
+                # Extract arrays without outer brackets
+                local first_array=$(echo "$all_results" | sed 's/^\[//;s/\]$//')
+                local second_array=$(echo "$page_results" | sed 's/^\[//;s/\]$//')
+                
+                # Combine with a comma if both have content
+                if [ -n "$first_array" ] && [ -n "$second_array" ]; then
+                    all_results="[${first_array},${second_array}]"
+                elif [ -n "$first_array" ]; then
+                    all_results="[${first_array}]"
+                elif [ -n "$second_array" ]; then
+                    all_results="[${second_array}]"
+                else
+                    all_results="[]"
+                fi
+            else
+                all_results="$page_results"
+            fi
+            
+            # Update pages fetched
+            pages_fetched="$pages_fetched,$current_page"
+        fi
+        
+        result_count=$(echo "$all_results" | grep -c .)
+    done
+    
+    # Format results as JSON array
+    echo "$all_results" > /tmp/search_results.json
+    
+    # Update pagination status
+    filtered_has_prev=false
+    [ "$first_page" -gt 1 ] && filtered_has_prev=true
+    
+    filtered_has_next=false
+    [ $current_page -lt $last_page ] && filtered_has_next=true
+    
+    # Save search state
+    echo "$query" > /tmp/last_search_query
+    echo "$first_page" > /tmp/last_search_page
+    echo "$last_page" > /tmp/last_search_last_page
+    echo "$pages_fetched" > /tmp/last_search_pages_fetched
+    echo "$filtered_has_next" > /tmp/last_search_has_next
+    echo "$filtered_has_prev" > /tmp/last_search_has_prev
+    
+    display_books "$all_results" "$first_page" "$filtered_has_prev" "$filtered_has_next" "$last_page"
 }
 
 download_book() {
@@ -747,10 +928,15 @@ $(load_version) | https://github.com/justrals/KindleFetch
                                 ;;
                             [nN])
                                 if [ "$has_next" = "true" ]; then
+                                    # For multi-page results we load more pages
                                     new_page=$((current_page + 1))
+                                    # Preserve the last_search_pages_fetched content
+                                    pages_fetched=$(cat /tmp/last_search_pages_fetched 2>/dev/null || echo "$current_page")
+                                    echo "$query" > /tmp/last_search_query
+                                    echo "$new_page" > /tmp/last_search_page
                                     search_books "$query" "$new_page"
                                 else
-                                    echo "Already on last page"
+                                    echo "No more pages available"
                                     sleep 2
                                 fi
                                 ;;
