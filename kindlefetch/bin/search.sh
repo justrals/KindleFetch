@@ -27,7 +27,7 @@ display_books() {
             echo ""
         else
             printf "%2d. %s by %s in %s format\n" $((i+1)) "$title" "$author" "$format"
-            [ -n "$description" ] && [ "$description" != "null" ] && echo "    $description"
+            # [ -n "$description" ] && [ "$description" != "null" ] && echo "    $description"
             echo ""
         fi
         
