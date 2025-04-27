@@ -47,12 +47,13 @@ main_menu() {
                                                 
 $(load_version) | https://github.com/justrals/KindleFetch
 "
+        cat /tmp/current_filters
         if $UPDATE_AVAILABLE; then
             echo "Update available! Select option 6 to install."
             echo ""
         fi
         echo "1. Search and download books"
-        echo "2. Search filters"
+        echo "2. Filter search results"
         echo "3. List my books"
         echo "4. Settings"
         echo "5. Exit"
