@@ -32,9 +32,9 @@ get_version() {
     fi
 }
 
-echo -n 'Do you want do save your existing config? [Y/n] '
+echo -n 'Do you want to save your existing config? [y/N] '
 read cfg_choice
-if [ "$cfg_choice" = "y" ] || [ "$cfg_choice" = "y" ]; then
+if [ "$cfg_choice" = "y" ] || [ "$cfg_choice" = "Y" ]; then
     if [ -f "$CONFIG_FILE" ]; then
         echo "Backing up existing config..."
         cp -f "$CONFIG_FILE" "$TEMP_CONFIG"
@@ -65,7 +65,7 @@ VERSION=$(get_version)
 mkdir -p "$INSTALL_DIR/bin"
 echo "$VERSION" > "$VERSION_FILE"
 
-if [ "$cfg_choice" = "y" ] || [ "$cfg_choice" = "y" ]; then
+if [ "$cfg_choice" = "y" ] || [ "$cfg_choice" = "Y" ]; then
     if [ -f "$TEMP_CONFIG" ]; then
         echo "Restoring configuration..."
         mv -f "$TEMP_CONFIG" "$CONFIG_FILE"
