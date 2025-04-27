@@ -14,7 +14,7 @@ REPO_URL="https://github.com/justrals/KindleFetch/archive/refs/heads/main.zip"
 ZIP_FILE="/mnt/us/repo.zip"
 EXTRACTED_DIR="/mnt/us/KindleFetch-main"
 INSTALL_DIR="/mnt/us/extensions/kindlefetch"
-CONFIG_FILE="$INSTALL_DIR/bin/.kindlefetch_config"
+CONFIG_FILE="$INSTALL_DIR/bin/kindlefetch_config"
 VERSION_FILE="$INSTALL_DIR/bin/.version"
 TEMP_CONFIG="/mnt/us/kindlefetch_config_backup"
 
