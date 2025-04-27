@@ -47,7 +47,6 @@ main_menu() {
                                                 
 $(load_version) | https://github.com/justrals/KindleFetch
 "
-        cat /tmp/current_filters
         if $UPDATE_AVAILABLE; then
             echo "Update available! Select option 6 to install."
             echo ""
