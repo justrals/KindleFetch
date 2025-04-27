@@ -2,10 +2,10 @@
 
 update() {
 	if [ "$UPDATE_AVAILABLE" = true ]; then
-        echo -n "Would you like to update? [y/N] "
+        echo -n "Would you like to update? [Y/n] "
         read confirm
 
-        if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
+        if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || [ -z "$confirm" ]; then
             echo "Installing update..."
             if curl -s https://justrals.github.io/KindleFetch/install.sh | sh; then
                 echo "Update installed successfully!"

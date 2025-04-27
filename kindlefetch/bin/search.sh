@@ -65,8 +65,8 @@ search_books() {
     echo "Searching for '$query' (page $page)..."
 
     local filters=""
-    if [ -f /tmp/current_filters ]; then
-        filters=$(cat /tmp/current_filters)
+    if [ -f "$SCRIPT_DIR"/tmp/current_filter_params ]; then
+        filters=$(cat "$SCRIPT_DIR/tmp/current_filter_params")
     fi
     
     encoded_query=$(echo "$query" | sed 's/ /+/g')
