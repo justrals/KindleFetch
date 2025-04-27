@@ -2,7 +2,7 @@
 
 update() {
 	if [ "$UPDATE_AVAILABLE" = true ]; then
-        echo "Would you like to update? [y/N]: "
+        echo -n "Would you like to update? [y/N] "
         read confirm
 
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then

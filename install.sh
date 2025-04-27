@@ -68,7 +68,3 @@ echo "Cleaning up..."
 rm -rf "$EXTRACTED_DIR"
 
 echo "KindleFetch installation completed successfully. Version: $VERSION"
-echo -n "Press any key to continue..."
-read -n 1 -s
-
-exit 0
