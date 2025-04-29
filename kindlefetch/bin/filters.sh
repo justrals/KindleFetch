@@ -37,7 +37,8 @@ filters_menu() {
 "
         echo "╭──────────────────────────────────────╮"
         echo "│  1. Content  2. Format  3. Language  │"
-        echo "│  4. Source  5. Sort  Enter - Apply   │"
+        echo "│         4. Source  5. Sort           │"
+        echo "│        Enter - Apply & Exit          │"
         echo "╰──────────────────────────────────────╯"
         echo ""
         
