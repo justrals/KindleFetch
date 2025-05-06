@@ -217,12 +217,70 @@ search_books() {
             *)
                 if echo "$choice" | grep -qE '^[0-9]+$'; then
                     if [ "$choice" -ge 1 ] && [ "$choice" -le "$count" ]; then
-                        if ! lgli_download "$choice"; then
-                            echo "Download from lgli failed, trying zlib..."
-                            if ! zlib_download "$choice"; then
-                                echo "Download from both lgli and zlib failed"
-                            fi
+                        local book_info=$(awk -v i="$choice" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' /tmp/search_results.json)
+
+                        local lgli_available=false
+                        local zlib_available=false
+
+                        if echo "$book_info" | grep -q "lgli"; then
+                            local lgli_available=true
                         fi
+                        if echo "$book_info" | grep -q "zlib"; then
+                            local zlib_available=true
+                        fi
+
+                        if [ "$lgli_available" = false ] && [ "$zlib_available" = false ]; then
+                            echo "There are no available sources for this book right now. :["
+                        fi
+
+                        if [ "$lgli_available" = true ]; then
+                            echo "1. lgli"
+                        fi
+                        if [ "$zlib_available" = true ]; then
+                            echo "2. zlib"
+                        fi
+                        echo "3. Cancel download"
+
+                        while true; do
+                            echo -n "Choose source to proceed with: "
+                            read source_choice
+
+                            case "$source_choice" in
+                                1)
+                                    if [ "$lgli_available" = true ]; then
+                                        echo "Proceeding with lgli..."
+                                        if ! lgli_download "$choice"; then
+                                            echo "Download from lgli failed."
+                                            sleep 2
+                                        else
+                                            break
+                                        fi
+                                    else
+                                        echo "Invalid choice."
+                                    fi
+                                    ;;
+                                2)
+                                    if [ "$zlib_available" = true ]; then
+                                        echo "Proceeding with zlib..."
+                                        if ! zlib_download "$choice"; then
+                                            echo "Download from zlib failed."
+                                            sleep 2
+                                        else
+                                            break
+                                        fi
+                                    else
+                                        echo "Invalid choice."
+                                    fi
+                                    ;;
+                                3)
+                                    break
+                                    ;;
+                                *)
+                                    echo "Invalid choice."
+                                    ;;
+                            esac
+                        done
+
                         echo -n "Press any key to continue..."
                         read -n 1 -s
                     else
