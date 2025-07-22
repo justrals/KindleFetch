@@ -3,12 +3,12 @@
 zlib_download() {
     local index=$1
     
-    if [ ! -f "/tmp/search_results.json" ]; then
+    if [ ! -f "$TMP_DIR/search_results.json" ]; then
         echo "Error: No search results found" >&2
         return 1
     fi
     
-    local book_info=$(awk -v i="$index" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' /tmp/search_results.json)
+    local book_info=$(awk -v i="$index" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' $TMP_DIR/search_results.json)
     if [ -z "$book_info" ]; then
         echo "Error: Invalid book selection" >&2
         return 1
