@@ -13,8 +13,6 @@ settings_menu() {
                               __/ |    
                              |___/     
 "
-        echo "Tip:"
-        echo "Tap two fingers and press the X button to refresh the screen."
         echo ""
         echo "Current configuration:"
         echo "1. Documents directory: $KINDLE_DOCUMENTS"

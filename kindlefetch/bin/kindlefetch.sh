@@ -15,11 +15,14 @@ BASE_DIR="/mnt/us"
 UPDATE_AVAILABLE=false
 
 # Check if running on a Kindle
-if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "$BASE_DIR" ] || pgrep "lipc-daemon" >/dev/null; }; then
-    echo "Error: This script must run on a Kindle device." >&2
-    echo "Press any key to exit."
-    read -n 1 -s
-    exit 1
+if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon" >/dev/null; }; then
+    echo -n "This script must run on a Kindle device. Do you want to run it anyway? [y/N]: "
+    read kindle_override_choice
+    if [ "$kindle_override_choice" = "y" ] || [ "$kindle_override_choice" = "Y" ]; then
+        :
+    else
+        exit 1
+    fi
 fi
 
 # Script imports

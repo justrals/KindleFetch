@@ -4,8 +4,13 @@ set -e
 
 # Check if running on a Kindle
 if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon" >/dev/null; }; then
-    echo "Error: This script must run on a Kindle device." >&2
-    exit 1
+    echo -n "This script must run on a Kindle device. Do you want to run it anyway? [y/N]: "
+    read kindle_override_choice
+    if [ "$kindle_override_choice" = "y" ] || [ "$kindle_override_choice" = "Y" ]; then
+        :
+    else
+        exit 1
+    fi
 fi
 
 # Variables
