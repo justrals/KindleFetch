@@ -38,10 +38,10 @@ ensure_config_dir() {
 }
 
 cleanup() {
-    rm -f /tmp/kindle_books.list \
-          /tmp/kindle_folders.list \
-          /tmp/search_results.json \
-          /tmp/last_search_*
+    rm -f $TMP_DIR/kindle_books.list \
+          $TMP_DIR/kindle_folders.list \
+          $TMP_DIR/search_results.json \
+          $TMP_DIR/last_search_*
 }
 
 get_version() {

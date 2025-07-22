@@ -9,11 +9,13 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 CONFIG_FILE="$SCRIPT_DIR/kindlefetch_config"
 LINK_CONFIG_FILE="$SCRIPT_DIR/link_config"
 VERSION_FILE="$SCRIPT_DIR/.version"
+TMP_DIR="/tmp"
+BASE_DIR="/mnt/us"
 
 UPDATE_AVAILABLE=false
 
 # Check if running on a Kindle
-if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon" >/dev/null; }; then
+if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "$BASE_DIR" ] || pgrep "lipc-daemon" >/dev/null; }; then
     echo "Error: This script must run on a Kindle device." >&2
     echo "Press any key to exit."
     read -n 1 -s

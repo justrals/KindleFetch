@@ -82,11 +82,11 @@ search_books() {
     local has_next="false"
     [ "$page" -lt "$last_page" ] && has_next="true"
 
-    echo "$query" > /tmp/last_search_query
-    echo "$page" > /tmp/last_search_page
-    echo "$last_page" > /tmp/last_search_last_page
-    echo "$has_next" > /tmp/last_search_has_next
-    echo "$has_prev" > /tmp/last_search_has_prev
+    echo "$query" > $TMP_DIR/last_search_query
+    echo "$page" > $TMP_DIR/last_search_page
+    echo "$last_page" > $TMP_DIR/last_search_last_page
+    echo "$has_next" > $TMP_DIR/last_search_has_next
+    echo "$has_prev" > $TMP_DIR/last_search_has_prev
     
     local books=$(echo "$html_content" | awk '
         BEGIN {
@@ -176,15 +176,15 @@ search_books() {
         END { print "\n]" }
     ')
     
-    echo "$books" > /tmp/search_results.json
+    echo "$books" > $TMP_DIR/search_results.json
 
     while true; do
-        query=$(cat /tmp/last_search_query 2>/dev/null)
-        current_page=$(cat /tmp/last_search_page 2>/dev/null || echo 1)
-        last_page=$(cat /tmp/last_search_last_page 2>/dev/null || echo 1)
-        has_next=$(cat /tmp/last_search_has_next 2>/dev/null || echo "false")
-        has_prev=$(cat /tmp/last_search_has_prev 2>/dev/null || echo "false")
-        books=$(cat /tmp/search_results.json 2>/dev/null)
+        query=$(cat $TMP_DIR/last_search_query 2>/dev/null)
+        current_page=$(cat $TMP_DIR/last_search_page 2>/dev/null || echo 1)
+        last_page=$(cat $TMP_DIR/last_search_last_page 2>/dev/null || echo 1)
+        has_next=$(cat $TMP_DIR/last_search_has_next 2>/dev/null || echo "false")
+        has_prev=$(cat $TMP_DIR/last_search_has_prev 2>/dev/null || echo "false")
+        books=$(cat $TMP_DIR/search_results.json 2>/dev/null)
         count=$(echo "$books" | grep -o '"title":' | wc -l)
         
         display_books "$books" "$current_page" "$has_prev" "$has_next" "$last_page"
@@ -217,7 +217,7 @@ search_books() {
             *)
                 if echo "$choice" | grep -qE '^[0-9]+$'; then
                     if [ "$choice" -ge 1 ] && [ "$choice" -le "$count" ]; then
-                        local book_info=$(awk -v i="$choice" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' /tmp/search_results.json)
+                        local book_info=$(awk -v i="$choice" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' $TMP_DIR/search_results.json)
 
                         local lgli_available=false
                         local zlib_available=false
