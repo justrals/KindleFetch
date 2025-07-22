@@ -10,7 +10,7 @@ CONFIG_FILE="$SCRIPT_DIR/kindlefetch_config"
 LINK_CONFIG_FILE="$SCRIPT_DIR/link_config"
 VERSION_FILE="$SCRIPT_DIR/.version"
 TMP_DIR="/tmp"
-BASE_DIR="$BASE_DIR"
+BASE_DIR="/mnt/us"
 
 UPDATE_AVAILABLE=false
 
