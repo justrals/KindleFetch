@@ -236,9 +236,9 @@ search_books() {
                         if [ "$lgli_available" = true ]; then
                             echo "1. lgli"
                         fi
-                        if [ "$zlib_available" = true ]; then
-                            echo "2. zlib"
-                        fi
+                        # if [ "$zlib_available" = true ]; then
+                        #     echo "2. zlib"
+                        # fi
                         echo "3. Cancel download"
 
                         while true; do
@@ -259,19 +259,19 @@ search_books() {
                                         echo "Invalid choice."
                                     fi
                                     ;;
-                                2)
-                                    if [ "$zlib_available" = true ]; then
-                                        echo "Proceeding with zlib..."
-                                        if ! zlib_download "$choice"; then
-                                            echo "Download from zlib failed."
-                                            sleep 2
-                                        else
-                                            break
-                                        fi
-                                    else
-                                        echo "Invalid choice."
-                                    fi
-                                    ;;
+                                # 2)
+                                #     if [ "$zlib_available" = true ]; then
+                                #         echo "Proceeding with zlib..."
+                                #         if ! zlib_download "$choice"; then
+                                #             echo "Download from zlib failed."
+                                #             sleep 2
+                                #         else
+                                #             break
+                                #         fi
+                                #     else
+                                #         echo "Invalid choice."
+                                #     fi
+                                #     ;;
                                 3)
                                     break
                                     ;;
