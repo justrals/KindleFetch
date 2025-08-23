@@ -1,5 +1,18 @@
 #!/bin/sh
 
+change_dns () {
+    RESOLV_FILE="/var/run/resolv.conf"
+    
+    if [ ! -f "$RESOLV_FILE" ]; then
+        exit 1
+    fi
+
+    sed -i '/^nameserver/d' "$RESOLV_FILE"
+
+    echo "nameserver 1.1.1.1" >> "$RESOLV_FILE"
+    echo "nameserver 1.0.0.1" >> "$RESOLV_FILE"
+}
+
 load_config() {
     eval "$(base64 -d "$LINK_CONFIG_FILE")"
     if [ -f "$CONFIG_FILE" ]; then
@@ -78,4 +91,5 @@ save_config() {
     echo "CREATE_SUBFOLDERS=\"$CREATE_SUBFOLDERS\"" >> "$CONFIG_FILE"
     echo "DEBUG_MODE=\"$DEBUG_MODE\"" >> "$CONFIG_FILE"
     echo "COMPACT_OUTPUT=\"$COMPACT_OUTPUT\"" >> "$CONFIG_FILE"
+    echo "ENFORCE_DNS=\"$ENFORCE_DNS\"" >> "$CONFIG_FILE"
 }

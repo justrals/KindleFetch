@@ -18,8 +18,9 @@ settings_menu() {
         echo "1. Documents directory: $KINDLE_DOCUMENTS"
         echo "2. Toggle subfolders for books: $CREATE_SUBFOLDERS"
         echo "3. Toggle compact output: $COMPACT_OUTPUT"
-        echo "4. Check for updates"
-        echo "5. Back to main menu"
+        echo "4. Toggle Cloudflare DNS: $ENFORCE_DNS"
+        echo "5. Check for updates"
+        echo "6. Back to main menu"
         echo ""
         echo -n "Choose option: "
         read choice
@@ -60,10 +61,21 @@ settings_menu() {
                 save_config
                 ;;
             4)
+                if $ENFORCE_DNS; then
+                    ENFORCE_DNS=false
+                    echo "Cloudflare DNS disabled, using provider DNS from next Wifi reconnection"
+                else
+                    ENFORCE_DNS=true
+                    change_dns
+                    echo "Cloudflare DNS enabled"
+                fi
+                save_config
+                ;;
+            5)
                 check_for_updates
                 update
                 ;;
-            5)
+            6)
                 break
                 ;;
 

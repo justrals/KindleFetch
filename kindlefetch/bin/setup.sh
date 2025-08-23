@@ -44,6 +44,13 @@ first_time_setup() {
     else
         COMPACT_OUTPUT="false"
     fi
+    echo -n "Use Cloudflare DNS? [y/N]: "
+    read dns_choice
+    if [ "$dns_choice" = "y" ] || [ "$dns_choice" = "Y" ]; then
+        ENFORCE_DNS="true"
+    else
+        ENFORCE_DNS="false"
+    fi
 
     save_config
     . "$CONFIG_FILE"
