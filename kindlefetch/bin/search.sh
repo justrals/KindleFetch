@@ -88,93 +88,79 @@ search_books() {
     echo "$has_next" > $TMP_DIR/last_search_has_next
     echo "$has_prev" > $TMP_DIR/last_search_has_prev
     
-    local books=$(echo "$html_content" | awk '
+    local books=$(echo $html_content | awk '
         BEGIN {
-            RS="<div class=\"h-\\[110px\\] flex flex-col justify-center \">";
-            FS=">";
+            RS = "<div class=\"flex pt-3 pb-3 border-b last:border-b-0 border-gray-100\">"
             print "["
-            book_count = 0
+            count = 0
         }
         NR > 1 {
-            link = ""; md5 = ""; title = ""; author = ""; format = "null"; description = "null"
-            
-            # Extract MD5 and link
-            if ($0 ~ /<a href="\/md5\//) {
-                link_start = index($0, "/md5/")
-                link_end = index(substr($0, link_start), "\"")
-                if (link_end > 0) {
-                    link = substr($0, link_start, link_end - 1)
-                    md5 = substr(link, 6, 32)
+            title = ""; author = ""; md5 = ""; format = ""; description = ""
+        
+            # md5
+            if (match($0, /href="\/md5\/[a-f0-9]{32}"/)) {
+                md5 = substr($0, RSTART+11, 32)
+            }
+        
+            # title
+            if (match($0, /<div class="font-bold text-violet-900 line-clamp-\[5\]" data-content="[^"]+"/)) {
+                block = substr($0, RSTART, RLENGTH)
+                if (match(block, /data-content="[^"]+"/)) {
+                    title = substr(block, RSTART+14, RLENGTH-15)
                 }
             }
-            
-            # Extract title
-            if ($0 ~ /<h3 class=/) {
-                title_start = index($0, "<h3")
-                title_part = substr($0, title_start)
-                title_start = index(title_part, ">") + 1
-                title_end = index(title_part, "</h3>")
-                if (title_end > 0) {
-                    title = substr(title_part, title_start, title_end - title_start)
-                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", title)
-                    gsub(/"/, "\\\"", title)
-                    gsub(/•/, "\\u2022", title)
+        
+            # author
+            if ($0 ~ /<div[^>]*class="[^"]*font-bold[^"]*text-amber-900[^"]*line-clamp-\[2\][^"]*"/) {
+                if (match($0, /<div[^>]*class="[^"]*font-bold[^"]*text-amber-900[^"]*line-clamp-\[2\][^"]*" data-content="[^"]+"/)) {
+                    block = substr($0, RSTART, RLENGTH)
+                    if (match(block, /data-content="[^"]+"/)) {
+                        author = substr(block, RSTART+14, RLENGTH-15)
+                    }
                 }
             }
-            
-            # Extract author
-            if ($0 ~ /<div class=.*italic/) {
-                author_start = index($0, "italic")
-                author_part = substr($0, author_start)
-                author_start = index(author_part, ">") + 1
-                author_end = index(author_part, "</div>")
-                if (author_end > 0) {
-                    author = substr(author_part, author_start, author_end - author_start)
-                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", author)
-                    gsub(/"/, "\\\"", author)
-                }
-            }
-
-            # Extract format
-            if ($0 ~ /text-gray-500">/) {
-                format_start = index($0, "text-gray-500\">") + 15
-                format_part = substr($0, format_start)
-                format_end = index(format_part, "<")
-                if (format_end > 0) {
-                    format_line = substr(format_part, 1, format_end - 1)
-                    if (match(format_line, /\.([a-z0-9]+),/)) {
-                        format = substr(format_line, RSTART + 1, RLENGTH - 2)
-                        format = "\"" format "\""
+        
+            # format
+            if (match($0, /<div class="text-gray-800[^>]*>[^<]+/)) {
+                line = substr($0, RSTART, RLENGTH)
+                if (match(line, />[^<]+/)) {
+                    content = substr(line, RSTART+1, RLENGTH-1)
+                    n = split(content, parts, " · ")
+                    if (n >= 2) {
+                        format = parts[2]
                     }
                 }
             }
             
-            # Extract description
-            if ($0 ~ /class="[^"]*text-gray-500[^"]*"/) {
-                desc_start = index($0, "text-gray-500")
-                desc_part = substr($0, desc_start)
-                desc_start = index(desc_part, ">") + 1
-                desc_end = index(desc_part, "</div>")
-                if (desc_end > 0) {
-                    description = substr(desc_part, desc_start, desc_end - desc_start)
-                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", description)
-                    gsub(/"/, "\\\"", description)
-                    description = "\"" description "\""
-                }
+            # description
+            if (match($0, /<div class="text-gray-800 dark:text-slate-400 font-semibold text-sm leading-\[1\.2\] mt-2">[^<]+<\/div>/)) {
+		line = substr($0, RSTART, RLENGTH)
+		gsub(/<[^>]*>/, "", line)  # rimuove i tag HTML
+		gsub(/^ +| +$/, "", line)  # rimuove spazi esterni
+		description = line
             }
-
+        
+            # emoji replacements
             gsub(/🚀/, "Partner Server", description)
             gsub(/📗|📘|📕|📰|💬|📝|🤨|🎶|✅/, "", description)
-            
+        
+            # escape double quotes
+            gsub(/"/, "\\\"", title)
+            gsub(/"/, "\\\"", author)
+            gsub(/"/, "\\\"", description)
+        
             if (title != "") {
-                if (book_count > 0) printf ",\n"
-                printf "  {\"author\":\"%s\",\"format\":%s,\"md5\":\"%s\",\"title\":\"%s\",\"url\":\"$ANNAS_URL%s\",\"description\":%s}", 
-                    author, format, md5, title, link, description
-                book_count++
+                if (count > 0) {
+                    printf ",\n"
+                }
+                printf "  {\"author\": \"%s\", \"format\": \"%s\", \"md5\": \"%s\", \"title\": \"%s\", \"url\": \"%s/md5/%s\", \"description\": \"%s\"}", author, format, md5, title, base_url, md5, description
+                count++
             }
         }
-        END { print "\n]" }
-    ')
+        END {
+            print "\n]"
+        }'
+    )
     
     echo "$books" > $TMP_DIR/search_results.json
 
@@ -186,7 +172,7 @@ search_books() {
         has_prev=$(cat $TMP_DIR/last_search_has_prev 2>/dev/null || echo "false")
         books=$(cat $TMP_DIR/search_results.json 2>/dev/null)
         count=$(echo "$books" | grep -o '"title":' | wc -l)
-        
+
         display_books "$books" "$current_page" "$has_prev" "$has_next" "$last_page"
         
         echo -n "Enter choice: "
