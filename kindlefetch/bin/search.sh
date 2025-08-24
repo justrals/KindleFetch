@@ -133,11 +133,20 @@ search_books() {
             }
             
             # description
-            if (match($0, /<div class="text-gray-800 dark:text-slate-400 font-semibold text-sm leading-\[1\.2\] mt-2">[^<]+<\/div>/)) {
-		line = substr($0, RSTART, RLENGTH)
-		gsub(/<[^>]*>/, "", line)  # rimuove i tag HTML
-		gsub(/^ +| +$/, "", line)  # rimuove spazi esterni
-		description = line
+            if (match($0, /<div[^>]*class="[^"]*text-gray-800[^"]*font-semibold[^"]*text-sm[^"]*leading-\[1\.2\][^"]*mt-2[^"]*"[^>]*>.*?<\/div>/)) {
+                line = substr($0, RSTART, RLENGTH)
+
+                gsub(/<script[^>]*>[^<]*(<[^>]*>[^<]*)*<\/script>/, "", line)
+
+                gsub(/<a[^>]*>[^<]*(<[^>]*>[^<]*)*<\/a>/, "", line)
+
+                gsub(/<[^>]*>/, "", line)
+
+                gsub(/&[#a-zA-Z0-9]+;/, "", line)
+
+                gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", line)
+
+                description = line
             }
         
             # emoji replacements
