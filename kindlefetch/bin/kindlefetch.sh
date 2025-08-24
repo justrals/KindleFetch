@@ -38,6 +38,9 @@ fi
 
 main_menu() {
     load_config
+    if [ "${ENFORCE_DNS}" = "true" ];
+    	then change_dns
+    fi
     check_for_updates
     
     while true; do
