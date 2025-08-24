@@ -42,6 +42,7 @@ display_books() {
     if [ "$3" = "true" ]; then
         echo -n "p: Previous page | "
     fi
+    echo -n "t[1-$last_page]: Select page | "
     if [ "$4" = "true" ]; then
         echo -n "n: Next page | "
     fi
@@ -206,6 +207,25 @@ search_books() {
                     search_books "$query" "$new_page"
                 else
                     echo "Already on last page"
+                    sleep 2
+                fi
+                ;;
+            t[0-9]*)
+                page_number="${choice#t}"
+                if [[ "$page_number" =~ ^[0-9]+$ ]]; then
+                    if [ "$page_number" -ge 1 ] && [ "$page_number" -le "$last_page" ]; then
+                        if [ "$page_number" -ne "$current_page" ]; then
+                            search_books "$query" "$page_number"
+                        else
+                            echo "You are already on page $current_page"
+                            sleep 2
+                        fi
+                    else
+                        echo "Page number out of range (1-$last_page)"
+                        sleep 2
+                    fi
+                else
+                    echo "Invalid input"
                     sleep 2
                 fi
                 ;;
