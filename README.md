@@ -3,7 +3,7 @@
 # KindleFetch
 
 <a href="https://github.com/justrals/KindleFetch"><img src="https://img.shields.io/github/stars/justrals/KindleFetch" height="25px"></a>
-<a href="https://justrals.tech/donate"><img src="https://img.shields.io/badge/Donate-f09c00" height="25px"></a>
+<a href="https://justrals.wtf/donate"><img src="https://img.shields.io/badge/Donate-f09c00" height="25px"></a>
 
 Simple CLI for downloading books from Anna's Archive directly to your Kindle without a computer.
 
