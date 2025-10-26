@@ -15,9 +15,9 @@ fi
 
 # Variables
 API_URL="https://api.github.com/repos/justrals/KindleFetch/commits"
-REPO_URL="https://github.com/justrals/KindleFetch/archive/refs/heads/main.zip"
+REPO_URL="https://github.com/justrals/KindleFetch/archive/refs/heads/staging.zip"
 ZIP_FILE="/mnt/us/repo.zip"
-EXTRACTED_DIR="/mnt/us/KindleFetch-main"
+EXTRACTED_DIR="/mnt/us/KindleFetch-staging"
 INSTALL_DIR="/mnt/us/extensions/kindlefetch"
 CONFIG_FILE="$INSTALL_DIR/bin/kindlefetch_config"
 TEMP_CONFIG="/mnt/us/kindlefetch_config"
