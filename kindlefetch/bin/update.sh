@@ -2,8 +2,8 @@
 
 update() {
 	if [ "$UPDATE_AVAILABLE" = true ]; then
-        echo -n "Would you like to update? [Y/n] "
-        read confirm
+        echo -n "Would you like to update? [Y/n]: "
+        read -r confirm
 
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || [ -z "$confirm" ]; then
             echo "Installing update..."

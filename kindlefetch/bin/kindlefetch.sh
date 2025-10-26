@@ -9,15 +9,18 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 CONFIG_FILE="$SCRIPT_DIR/kindlefetch_config"
 LINK_CONFIG_FILE="$SCRIPT_DIR/link_config"
 VERSION_FILE="$SCRIPT_DIR/.version"
+ZLIB_COOKIES_FILE="$SCRIPT_DIR/zlib_cookies.txt"
 TMP_DIR="/tmp"
 BASE_DIR="/mnt/us"
 
 UPDATE_AVAILABLE=false
+CREATE_SUBFOLDERS=false
+COMPACT_OUTPUT=false
 
 # Check if running on a Kindle
 if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon" >/dev/null; }; then
     echo -n "This script must run on a Kindle device. Do you want to run it anyway? [y/N]: "
-    read kindle_override_choice
+    read -r kindle_override_choice
     if [ "$kindle_override_choice" = "y" ] || [ "$kindle_override_choice" = "Y" ]; then
         :
     else
@@ -38,7 +41,7 @@ fi
 
 main_menu() {
     load_config
-    if [ "${ENFORCE_DNS}" = "true" ];
+    if [ "${ENFORCE_DNS}" = true ];
     	then change_dns
     fi
     check_for_updates
@@ -70,7 +73,7 @@ $(load_version) | https://github.com/justrals/KindleFetch
         fi
         echo ""
         echo -n "Choose option: "
-        read choice
+        read -r choice
         
         case "$choice" in
             1)

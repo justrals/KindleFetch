@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 rm kindlefetch.zip
+rm kindlefetch/bin/kindlefetch_config
+rm kindlefetch/bin/zlib_cookies.txt
+rm kindlefetch/bin/.version
+
 
 get_version() {
     api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/justrals/KindleFetch/commits") || {

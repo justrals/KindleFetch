@@ -13,14 +13,11 @@ first_time_setup() {
                       |_|    
 "
     echo "Welcome to KindleFetch! Let's set up your configuration."
-    echo ""
-    echo "NOTE: This tool does not provide copyrighted material. You must configure your own book sources."
-    echo ""
     
     echo -n "Enter your Kindle downloads directory [It will be $BASE_DIR/your_directory. Only enter your_directory part.]: "
-    read user_input
-    if [ -n "$user_input" ]; then
-        KINDLE_DOCUMENTS="$BASE_DIR/$user_input"
+    read -r downloads_dir
+    if [ -n "$downloads_dir" ]; then
+        KINDLE_DOCUMENTS="$BASE_DIR/$downloads_dir"
         if [ ! -d "$KINDLE_DOCUMENTS" ]; then
             mkdir -p "$KINDLE_DOCUMENTS" || {
                 echo "Error: Failed to create directory $KINDLE_DOCUMENTS" >&2
@@ -30,26 +27,36 @@ first_time_setup() {
     else
         KINDLE_DOCUMENTS="$BASE_DIR/documents"
     fi
-    echo -n "Create subfolders for books? [y/N]: "
-    read subfolders_choice
-    if [ "$subfolders_choice" = "y" ] || [ "$subfolders_choice" = "Y" ]; then
-        CREATE_SUBFOLDERS="true"
+
+    echo -n "Do you want to sign into your zlib account? [Y/n]: "
+    read -r zlib_login_choice
+    if [ "$zlib_login_choice" = "n" ] || [ "$zlib_login_choice" = "N" ]; then
+        ZLIB_AUTH=false
     else
-        CREATE_SUBFOLDERS="false"
+        while true; do
+            echo -n "Zlib email: "
+            read -r zlib_email
+            echo -n "Zlib password: "
+            read -s -r zlib_password
+
+            if zlib_login "$zlib_email" "$zlib_password"; then
+                ZLIB_AUTH=true
+            else
+                echo -n "Zlib login failed. Do you want to try again? [Y/n]: "
+                read -r zlib_login_retry_choice
+                if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
+                    ZLIB_AUTH=false
+                fi
+            fi
+        done
     fi
-    echo -n "Enable compact output? [y/N]: "
-    read compact_choice
-    if [ "$compact_choice" = "y" ] || [ "$compact_choice" = "Y" ]; then
-        CREATE_SUBFOLDERS="true"
-    else
-        COMPACT_OUTPUT="false"
-    fi
+
     echo -n "Use Cloudflare DNS? [y/N]: "
-    read dns_choice
+    read -r dns_choice
     if [ "$dns_choice" = "y" ] || [ "$dns_choice" = "Y" ]; then
-        ENFORCE_DNS="true"
+        ENFORCE_DNS=true
     else
-        ENFORCE_DNS="false"
+        ENFORCE_DNS=false
     fi
 
     save_config

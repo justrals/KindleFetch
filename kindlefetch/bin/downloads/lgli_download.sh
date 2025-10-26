@@ -1,35 +1,34 @@
 #!/bin/sh
 
 lgli_download() {
-    local index=$1
+    local index="$1"
     
     if [ ! -f "$TMP_DIR/search_results.json" ]; then
         echo "Error: No search results found" >&2
         return 1
     fi
     
-    local book_info=$(awk -v i="$index" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' $TMP_DIR/search_results.json)
+    local book_info="$(awk -v i="$index" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' "$TMP_DIR"/search_results.json)"
     if [ -z "$book_info" ]; then
         echo "Error: Invalid book selection" >&2
         return 1
     fi
     
-    local md5=$(get_json_value "$book_info" "md5")
-    local title=$(get_json_value "$book_info" "title")
-    local format=$(get_json_value "$book_info" "format")
+    local md5="$(get_json_value "$book_info" "md5")"
+    local title="$(get_json_value "$book_info" "title")"
+    local format="$(get_json_value "$book_info" "format")"
     
-    echo "Downloading: $title"
+    printf "\nDownloading: $title"
 
-    local clean_title=$(sanitize_filename "$title" | tr -d ' ')
-    local final_location
+    local clean_title="$(sanitize_filename "$title" | tr -d ' ')"
 
-    echo -n "Do you want to change filename? [y/N] "
-    read confirm
+    printf '\nDo you want to change filename? [y/N]: '
+    read -r confirm
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
         echo -n "Enter your custom filename: "
-        read custom_filename
+        read -r custom_filename
         if [ -n "$custom_filename" ]; then
-            local clean_title=$(sanitize_filename "$custom_filename" | tr -d ' ')
+            local clean_title="$(sanitize_filename "$custom_filename" | tr -d ' ')"
         else
             echo "Invalid filename. Proceeding with original filename."
         fi
@@ -48,9 +47,9 @@ lgli_download() {
             echo "Error: Failed to create folder '$book_folder'" >&2
             return 1
         fi
-        final_location="$book_folder/$clean_title.$format"
+        local final_location="$book_folder/$clean_title.$format"
     else
-        final_location="$KINDLE_DOCUMENTS/$clean_title.$format"
+        local final_location="$KINDLE_DOCUMENTS/$clean_title.$format"
     fi
 
     if [ -e "$final_location" ] && [ ! -w "$final_location" ]; then
@@ -58,15 +57,13 @@ lgli_download() {
         return 1
     fi
 
-    echo "Fetching download page..."
-    if ! lgli_content=$(curl -s -L "$LGLI_URL/ads.php?md5=$md5"); then
-        if ! lgli_content=$(curl -s -L -x "$PROXY_URL" "$LGLI_URL/ads.php?md5=$md5"); then
-            echo "Error: Failed to fetch book page" >&2
-            return 1
-        fi
+    printf '\nFetching download page...\n'
+    if ! local lgli_content="$(curl -s -L "$LGLI_URL/ads.php?md5=$md5")"; then
+        echo "Error: Failed to fetch book page" >&2
+        return 1
     fi
     
-    if ! download_link=$(echo "$lgli_content" | grep -o -m 1 'href="[^"]*get\.php[^"]*"' | cut -d'"' -f2); then
+    if ! local download_link="$(echo "$lgli_content" | grep -o -m 1 'href="[^"]*get\.php[^"]*"' | cut -d'"' -f2)"; then
         echo "Error: Failed to parse download link" >&2
         return 1
     fi
@@ -79,25 +76,15 @@ lgli_download() {
     local download_url="$LGLI_URL/$download_link"
     echo "Downloading from: $download_url"
     
-    echo "Progress:"
+    printf '\nProgress (Press Ctrl + c to stop):\n'
 
-    for retry in 1 2 3; do
-        if curl -# -L -o "$final_location" "$download_url"; then
-            echo "Download successful!"
-            echo "Saved to: $final_location"
-            return 0
-        else
-            if curl -x "$PROXY_URL" -# -L -o "$final_location" "$download_url"; then
-                echo "Download successful!"
-                echo "Saved to: $final_location"
-                return 0
-            else
-                echo "Download attempt $retry failed"
-                [ $retry -lt 3 ] && sleep 5
-            fi
-        fi
-    done
+    if curl -# -L -o "$final_location" "$download_url"; then
+        printf '\nDownload successful!\n'
+        echo "Saved to: $final_location"
+        return 0
     
-    echo "Error: Failed to download after 3 attempts" >&2
-    return 1
+    else
+        printf '\nDownload failed.' >&2
+        return 1
+    fi
 }
