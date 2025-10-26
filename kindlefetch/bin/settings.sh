@@ -54,6 +54,7 @@ settings_menu() {
 
                     if zlib_login "$zlib_email" "$zlib_password"; then
                         ZLIB_AUTH=true
+                        save_config
                         sleep 2
                         break
                     else
@@ -61,6 +62,7 @@ settings_menu() {
                         read -r zlib_login_retry_choice
                         if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
                             ZLIB_AUTH=false
+                            save_config
                             break
                         fi
                     fi
