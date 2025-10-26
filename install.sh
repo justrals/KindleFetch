@@ -20,9 +20,9 @@ ZIP_FILE="/mnt/us/repo.zip"
 EXTRACTED_DIR="/mnt/us/KindleFetch-main"
 INSTALL_DIR="/mnt/us/extensions/kindlefetch"
 CONFIG_FILE="$INSTALL_DIR/bin/kindlefetch_config"
-TEMP_CONFIG="/mnt/us/kindlefetch_config_backup"
+TEMP_CONFIG="/mnt/us/kindlefetch_config"
 ZLIB_COOKIES_FILE="$INSTALL_DIR/bin/zlib_cookies.txt"
-TEMP_ZLIB_COOKIES_FILE="$INSTALL_DIR/bin/zlib_cookies.txt"
+TEMP_ZLIB_COOKIES_FILE="/mnt/us/zlib_cookies.txt"
 VERSION_FILE="$INSTALL_DIR/bin/.version"
 
 get_version() {
