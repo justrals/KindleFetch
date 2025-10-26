@@ -76,7 +76,7 @@ lgli_download() {
     local download_url="$LGLI_URL/$download_link"
     echo "Downloading from: $download_url"
     
-    printf '\nProgress:\n'
+    printf '\nProgress (Press Ctrl + c to stop):\n'
 
     if curl -# -L -o "$final_location" "$download_url"; then
         printf '\nDownload successful!\n'

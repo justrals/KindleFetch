@@ -254,8 +254,12 @@ search_books() {
                         if [ "$lgli_available" = true ]; then
                             echo "1. lgli"
                         fi
-                        if [ "$zlib_available" = true ] && [ "$ZLIB_AUTH" = true ]; then
-                            echo "2. zlib"
+                        if [ "$zlib_available" = true ]; then
+                            if [ "$ZLIB_AUTH" = true ]; then
+                                echo "2. zlib"
+                            else
+                                echo "2. zlib (Authentication needed)"
+                            fi
                         fi
                         echo "3. Cancel download"
 
@@ -278,13 +282,51 @@ search_books() {
                                     fi
                                     ;;
                                 2)
-                                    if [ "$zlib_available" = true ] && [ "$ZLIB_AUTH" = true ]; then
-                                        echo "Proceeding with zlib..."
-                                        if ! zlib_download "$choice"; then
-                                            echo "Download from zlib failed."
-                                            sleep 2
+                                    if [ "$zlib_available" = true ]; then
+                                        if [ "$ZLIB_AUTH" = true ]; then
+                                            echo "Proceeding with zlib..."
+                                            if ! zlib_download "$choice"; then
+                                                echo "Download from zlib failed."
+                                                sleep 2
+                                            else
+                                                break
+                                            fi
                                         else
-                                            break
+                                            echo -n "Do you want to sign into your zlib account? [Y/n]: "
+                                            read -r zlib_login_choice
+
+                                            if [ "$zlib_login_choice" = "n" ] || [ "$zlib_login_choice" = "N" ]; then
+                                                ZLIB_AUTH=false
+                                                save_config
+                                            else
+                                                while true; do
+                                                    echo -n "Zlib email: "
+                                                    read -r zlib_email
+                                                    echo -n "Zlib password: "
+                                                    read -s -r zlib_password
+                                                    echo
+
+                                                    if zlib_login "$zlib_email" "$zlib_password"; then
+                                                        ZLIB_AUTH=true
+                                                        save_config
+
+                                                        echo "Proceeding with zlib..."
+                                                        if ! zlib_download "$choice"; then
+                                                            echo "Download from zlib failed."
+                                                            sleep 2
+                                                        else
+                                                            break
+                                                        fi
+                                                    else
+                                                        echo -n "Zlib login failed. Do you want to try again? [Y/n]: "
+                                                        read -r zlib_login_retry_choice
+                                                        if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
+                                                            ZLIB_AUTH=false
+                                                            save_config
+                                                        fi
+                                                    fi
+                                                done
+                                            fi
                                         fi
                                     else
                                         echo "Invalid choice."
