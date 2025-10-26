@@ -260,7 +260,7 @@ search_books() {
                                 fi
                             fi
                             echo "3. Cancel download"
-                            
+
                             echo -n "Choose source to proceed with: "
                             read -r source_choice
 
@@ -319,6 +319,8 @@ search_books() {
                                                     else
                                                         echo -n "Zlib login failed. Do you want to try again? [Y/n]: "
                                                         read -r zlib_login_retry_choice
+                                                        echo
+                                                        
                                                         if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
                                                             ZLIB_AUTH=false
                                                             save_config
