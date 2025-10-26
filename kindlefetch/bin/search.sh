@@ -15,11 +15,11 @@ display_books() {
     
     i=$((count-1))
     while [ $i -ge 0 ]; do
-        book_info=$(echo "$1" | awk -v i=$i 'BEGIN{RS="\\{"; FS="\\}"} NR==i+2{print $1}')
-        title=$(get_json_value "$book_info" "title")
-        author=$(get_json_value "$book_info" "author")
-        format=$(get_json_value "$book_info" "format")
-        description=$(get_json_value "$book_info" "description")
+        local book_info=$(echo "$1" | awk -v i=$i 'BEGIN{RS="\\{"; FS="\\}"} NR==i+2{print $1}')
+        local title=$(get_json_value "$book_info" "title")
+        local author=$(get_json_value "$book_info" "author")
+        local format=$(get_json_value "$book_info" "format")
+        local description=$(get_json_value "$book_info" "description")
         
         if ! $COMPACT_OUTPUT; then
             printf "%2d. %s\n" $((i+1)) "$title"
@@ -56,7 +56,7 @@ search_books() {
     
     if [ -z "$query" ]; then
         echo -n "Enter search query: "
-        read query
+        read -r query
         [ -z "$query" ] && {
             echo "Search query cannot be empty"
             return 1
@@ -70,26 +70,26 @@ search_books() {
         filters=$(cat "$SCRIPT_DIR/tmp/current_filter_params")
     fi
     
-    encoded_query=$(echo "$query" | sed 's/ /+/g')
-    search_url="$ANNAS_URL/search?page=${page}&q=${encoded_query}${filters}"
-    local html_content=$(curl -s "$search_url") || html_content=$(curl -s -x "$PROXY_URL" "$search_url")
+    local encoded_query=$(echo "$query" | sed 's/ /+/g')
+    local search_url="$ANNAS_URL/search?page=${page}&q=${encoded_query}${filters}"
+    local html_content="$(curl -s "$search_url") || html_content=$(curl -s -x "$PROXY_URL" "$search_url")"
     
-    local last_page=$(echo "$html_content" | grep -o 'page=[0-9]\+"' | sort -t= -k2 -nr | head -1 | cut -d= -f2 | tr -d '"')
+    local last_page="$(echo "$html_content" | grep -o 'page=[0-9]\+"' | sort -t= -k2 -nr | head -1 | cut -d= -f2 | tr -d '"')"
     [ -z "$last_page" ] && last_page=1
     
-    local has_prev="false"
-    [ "$page" -gt 1 ] && has_prev="true"
+    local has_prev=false
+    [ "$page" -gt 1 ] && has_prev=true
     
-    local has_next="false"
-    [ "$page" -lt "$last_page" ] && has_next="true"
+    local has_next=false
+    [ "$page" -lt "$last_page" ] && has_next=true
 
-    echo "$query" > $TMP_DIR/last_search_query
-    echo "$page" > $TMP_DIR/last_search_page
-    echo "$last_page" > $TMP_DIR/last_search_last_page
-    echo "$has_next" > $TMP_DIR/last_search_has_next
-    echo "$has_prev" > $TMP_DIR/last_search_has_prev
+    echo "$query" > "$TMP_DIR"/last_search_query
+    echo "$page" > "$TMP_DIR"/last_search_page
+    echo "$last_page" > "$TMP_DIR"/last_search_last_page
+    echo "$has_next" > "$TMP_DIR"/last_search_has_next
+    echo "$has_prev" > "$TMP_DIR"/last_search_has_prev
     
-    local books=$(echo $html_content | awk '
+    local books="$(echo $html_content | awk '
         BEGIN {
             RS = "<div class=\"flex pt-3 pb-3 border-b last:border-b-0 border-gray-100\">"
             print "["
@@ -170,30 +170,30 @@ search_books() {
         END {
             print "\n]"
         }'
-    )
+    )"
     
-    echo "$books" > $TMP_DIR/search_results.json
+    echo "$books" > "$TMP_DIR"/search_results.json
 
     while true; do
-        query=$(cat $TMP_DIR/last_search_query 2>/dev/null)
-        current_page=$(cat $TMP_DIR/last_search_page 2>/dev/null || echo 1)
-        last_page=$(cat $TMP_DIR/last_search_last_page 2>/dev/null || echo 1)
-        has_next=$(cat $TMP_DIR/last_search_has_next 2>/dev/null || echo "false")
-        has_prev=$(cat $TMP_DIR/last_search_has_prev 2>/dev/null || echo "false")
-        books=$(cat $TMP_DIR/search_results.json 2>/dev/null)
-        count=$(echo "$books" | grep -o '"title":' | wc -l)
+        local query="$(cat "$TMP_DIR"/last_search_query 2>/dev/null)"
+        local current_page="$(cat "$TMP_DIR"/last_search_page 2>/dev/null || echo 1)"
+        local last_page="$(cat "$TMP_DIR"/last_search_last_page 2>/dev/null || echo 1)"
+        local has_next="$(cat "$TMP_DIR"/last_search_has_next 2>/dev/null || echo "false")"
+        local has_prev="$(cat "$TMP_DIR"/last_search_has_prev 2>/dev/null || echo "false")"
+        local books="$(cat "$TMP_DIR"/search_results.json 2>/dev/null)"
+        local count="$(echo "$books" | grep -o '"title":' | wc -l)"
 
         display_books "$books" "$current_page" "$has_prev" "$has_next" "$last_page"
         
         echo -n "Enter choice: "
-        read choice
+        read -r choice
         
         case "$choice" in
             [qQ])
                 break
                 ;;
             [pP])
-                if [ "$has_prev" = "true" ]; then
+                if [ "$has_prev" = true ]; then
                     new_page=$((current_page - 1))
                     search_books "$query" "$new_page"
                 else
@@ -202,7 +202,7 @@ search_books() {
                 fi
                 ;;
             [nN])
-                if [ "$has_next" = "true" ]; then
+                if [ "$has_next" = true ]; then
                     new_page=$((current_page + 1))
                     search_books "$query" "$new_page"
                 else
@@ -230,9 +230,12 @@ search_books() {
                 fi
                 ;;
             *)
+                # TODO
+                # - Make source option numbers consistent
+                
                 if echo "$choice" | grep -qE '^[0-9]+$'; then
                     if [ "$choice" -ge 1 ] && [ "$choice" -le "$count" ]; then
-                        local book_info=$(awk -v i="$choice" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' $TMP_DIR/search_results.json)
+                        local book_info="$(awk -v i="$choice" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' "$TMP_DIR"/search_results.json)"
 
                         local lgli_available=false
                         local zlib_available=false
@@ -245,20 +248,20 @@ search_books() {
                         fi
 
                         if [ "$lgli_available" = false ] && [ "$zlib_available" = false ]; then
-                            echo "There are no available sources for this book right now. :["
+                            echo "There are no available sources for this book right now."
                         fi
 
                         if [ "$lgli_available" = true ]; then
                             echo "1. lgli"
                         fi
-                        # if [ "$zlib_available" = true ]; then
-                        #     echo "2. zlib"
-                        # fi
+                        if [ "$zlib_available" = true ] && [ "$ZLIB_AUTH" = true ]; then
+                            echo "2. zlib"
+                        fi
                         echo "3. Cancel download"
 
                         while true; do
                             echo -n "Choose source to proceed with: "
-                            read source_choice
+                            read -r source_choice
 
                             case "$source_choice" in
                                 1)
@@ -274,19 +277,19 @@ search_books() {
                                         echo "Invalid choice."
                                     fi
                                     ;;
-                                # 2)
-                                #     if [ "$zlib_available" = true ]; then
-                                #         echo "Proceeding with zlib..."
-                                #         if ! zlib_download "$choice"; then
-                                #             echo "Download from zlib failed."
-                                #             sleep 2
-                                #         else
-                                #             break
-                                #         fi
-                                #     else
-                                #         echo "Invalid choice."
-                                #     fi
-                                #     ;;
+                                2)
+                                    if [ "$zlib_available" = true ] && [ "$ZLIB_AUTH" = true ]; then
+                                        echo "Proceeding with zlib..."
+                                        if ! zlib_download "$choice"; then
+                                            echo "Download from zlib failed."
+                                            sleep 2
+                                        else
+                                            break
+                                        fi
+                                    else
+                                        echo "Invalid choice."
+                                    fi
+                                    ;;
                                 3)
                                     break
                                     ;;

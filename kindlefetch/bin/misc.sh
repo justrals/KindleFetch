@@ -44,39 +44,39 @@ get_json_value() {
 }
 
 ensure_config_dir() {
-    config_dir=$(dirname "$CONFIG_FILE")
+    local config_dir="$(dirname "$CONFIG_FILE")"
     if [ ! -d "$config_dir" ]; then
         mkdir -p "$config_dir"
     fi
 }
 
 cleanup() {
-    rm -f $TMP_DIR/kindle_books.list \
-          $TMP_DIR/kindle_folders.list \
-          $TMP_DIR/search_results.json \
-          $TMP_DIR/last_search_*
+    rm -f "$TMP_DIR"/kindle_books.list \
+          "$TMP_DIR"/kindle_folders.list \
+          "$TMP_DIR"/search_results.json \
+          "$TMP_DIR"/last_search_*
 }
 
 get_version() {
-    api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/justrals/KindleFetch/commits") || {
+    local api_response="$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/justrals/KindleFetch/commits")" || {
         echo "Warning: Failed to fetch version from GitHub API" >&2
         echo "unknown"
         return
     }
 
-    latest_sha=$(echo "$api_response" | grep -m1 '"sha":' | cut -d'"' -f4 | cut -c1-7)
+    local latest_sha="$(echo "$api_response" | grep -m1 '"sha":' | cut -d'"' -f4 | cut -c1-7)"
     
     echo "$latest_sha" > "$VERSION_FILE"
     load_version
 }
 
 check_for_updates() {
-    local current_sha=$(load_version)
+    local current_sha="$(load_version)"
     
-    local latest_sha=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+    local latest_sha="$(curl -s -H "Accept: application/vnd.github.v3+json" \
         -H "Cache-Control: no-cache" \
         "https://api.github.com/repos/justrals/KindleFetch/commits?per_page=1" | \
-        grep -oE '"sha": "[0-9a-f]+"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+        grep -oE '"sha": "[0-9a-f]+"' | head -1 | cut -d'"' -f4 | cut -c1-7)"
     
     if [ -n "$latest_sha" ] && [ "$current_sha" != "$latest_sha" ]; then
         UPDATE_AVAILABLE=true
@@ -87,9 +87,84 @@ check_for_updates() {
 }
 
 save_config() {
-    echo "KINDLE_DOCUMENTS=\"$KINDLE_DOCUMENTS\"" > "$CONFIG_FILE"
-    echo "CREATE_SUBFOLDERS=\"$CREATE_SUBFOLDERS\"" >> "$CONFIG_FILE"
-    echo "DEBUG_MODE=\"$DEBUG_MODE\"" >> "$CONFIG_FILE"
-    echo "COMPACT_OUTPUT=\"$COMPACT_OUTPUT\"" >> "$CONFIG_FILE"
-    echo "ENFORCE_DNS=\"$ENFORCE_DNS\"" >> "$CONFIG_FILE"
+    {
+        echo "KINDLE_DOCUMENTS=\"$KINDLE_DOCUMENTS\""
+        echo "CREATE_SUBFOLDERS=\"$CREATE_SUBFOLDERS\""
+        echo "DEBUG_MODE=\"$DEBUG_MODE\""
+        echo "COMPACT_OUTPUT=\"$COMPACT_OUTPUT\""
+        echo "ENFORCE_DNS=\"$ENFORCE_DNS\""
+        echo "ZLIB_AUTH=\"$ZLIB_AUTH\""
+        echo "ZLIB_USERNAME=\"$ZLIB_USERNAME\""
+    } > "$CONFIG_FILE"
 }
+
+zlib_login() {
+    local zlib_login="$1"
+    local zlib_password="$2"
+
+    printf '\nLogging in to Z-Library...'
+
+    local response="$(curl -s -c "$ZLIB_COOKIES_FILE" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -H "Accept: application/json" \
+        -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+        -X POST -d "email=$zlib_login&password=$zlib_password" \
+        "$ZLIB_URL/eapi/user/login")"
+
+    local zlib_username="$(get_json_value "$response" "name" | tr -d '\r\n')"
+
+    if [ -n "$zlib_username" ]; then
+        printf "\nSuccessfully logged in as $zlib_username!"
+        ZLIB_USERNAME="$zlib_username"
+        sleep 2
+    else
+        printf "\nLogin failed."
+        echo "$response" | head -n1
+        sleep 2
+        return 1
+    fi
+}
+
+# download_from_zlib_by_md5() {
+#     md5="$1"
+
+#     final_url="$(curl -s -L -o /dev/null -w "%{url_effective}" "$ZLIB_URL/md5/$md5")"
+
+#     book_id="$(echo "$final_url" | sed -n 's#.*/book/\([0-9][0-9]*\)/[a-z0-9]\+#\1#p')"
+#     book_hash="$(echo "$final_url" | sed -n 's#.*/book/[0-9][0-9]*/\([a-z0-9]\+\).*#\1#p')"
+
+#     if [ -z "$book_id" ] || [ -z "$book_hash" ]; then
+#         echo "Failed to extract book info from URL: $final_url" >&2
+#         return 1
+#     fi
+
+#     response="$(curl -s -b "$ZLIB_COOKIES_FILE" \
+#         -H "Accept: application/json" \
+#         -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+#         "$ZLIB_URL/eapi/book/$book_id/$book_hash/file")"
+
+#     ddl="$(get_json_value "$response" "downloadLink" | sed 's#\\\/#/#g' | tr -d '\r\n')"
+#     filename="$(get_json_value "$response" "description" | tr -d '\r\n')"
+#     ext="$(get_json_value "$response" "extension" | tr -d '\r\n')"
+#     file_size="$(curl -sI "$ddl" | awk '/Content-Length/ {printf "%.2f MB\n", $2/1048576}')"
+
+#     if [ -z "$ddl" ]; then
+#         echo "Failed to get download link from Z-Library response."
+#         echo "$response" | head -n1
+#         return 1
+#     fi
+
+#     filename="$(sanitize_filename "${filename}.${EXT}")"
+#     filename="${filename:-book.bin}"
+
+#     echo "\nDownloading:" 
+#     echo "$filename\tSize: $file_size\tMD5: $md5"
+#     echo "Progress (Press Ctrl + c to stop):"
+
+#     if curl -L --progress-bar -b "$ZLIB_COOKIES_FILE" -o "$final_location" "$ddl"; then
+#         echo "Download successful!"
+#         echo "Saved to: $final_location"
+#     else
+#         echo "Download failed."
+#     fi
+# }

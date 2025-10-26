@@ -5,7 +5,7 @@ set -e
 # Check if running on a Kindle
 if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon" >/dev/null; }; then
     echo -n "This script must run on a Kindle device. Do you want to run it anyway? [y/N]: "
-    read kindle_override_choice
+    read -r kindle_override_choice
     if [ "$kindle_override_choice" = "y" ] || [ "$kindle_override_choice" = "Y" ]; then
         :
     else
@@ -20,8 +20,10 @@ ZIP_FILE="/mnt/us/repo.zip"
 EXTRACTED_DIR="/mnt/us/KindleFetch-main"
 INSTALL_DIR="/mnt/us/extensions/kindlefetch"
 CONFIG_FILE="$INSTALL_DIR/bin/kindlefetch_config"
-VERSION_FILE="$INSTALL_DIR/bin/.version"
 TEMP_CONFIG="/mnt/us/kindlefetch_config_backup"
+ZLIB_COOKIES_FILE="$INSTALL_DIR/bin/zlib_cookies.txt"
+TEMP_ZLIB_COOKIES_FILE="$INSTALL_DIR/bin/zlib_cookies.txt"
+VERSION_FILE="$INSTALL_DIR/bin/.version"
 
 get_version() {
     api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" "$API_URL") || {
@@ -40,6 +42,11 @@ get_version() {
 if [ -f "$CONFIG_FILE" ]; then
     echo "Backing up existing config..."
     cp -f "$CONFIG_FILE" "$TEMP_CONFIG"
+fi
+
+if [ -f "$ZLIB_COOKIES_FILE" ]; then
+    echo "Backing up existing zlib cookies..."
+    cp -f "$ZLIB_COOKIES_FILE" "$TEMP_ZLIB_COOKIES_FILE"
 fi
 
 echo "Downloading KindleFetch..."
@@ -67,6 +74,11 @@ echo "$VERSION" > "$VERSION_FILE"
 if [ -f "$TEMP_CONFIG" ]; then
     echo "Restoring configuration..."
     mv -f "$TEMP_CONFIG" "$CONFIG_FILE"
+fi
+
+if [ -f "$TEMP_ZLIB_COOKIES_FILE" ]; then
+    echo "Restoring zlib cookies..."
+    mv -f "$TEMP_ZLIB_COOKIES_FILE" "$ZLIB_COOKIES_FILE"
 fi
 
 echo "Cleaning up..."

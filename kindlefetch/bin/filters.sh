@@ -4,8 +4,8 @@ filters_menu() {
     CURRENT_FILTERS_FILE="$SCRIPT_DIR/tmp/current_filters"
     CURRENT_PARAMS_FILE="$SCRIPT_DIR/tmp/current_filter_params"
 
-    current_tab=1
-    total_tabs=5
+    local current_tab=1
+    local total_tabs=5
 
     mkdir -p "$SCRIPT_DIR/tmp" 2>/dev/null
 
@@ -87,7 +87,7 @@ filters_menu() {
 
         echo ""
         echo -n "Choose option (or t[1-5] to switch tabs): "
-        read choice
+        read -r choice
 
         case "$choice" in
             t1|t2|t3|t4|t5) current_tab=${choice#t} ;;
@@ -128,7 +128,7 @@ filters_menu() {
                            4) lang_filter="de" ;;
                            5) lang_filter="fr" ;;
                            6) echo -n "Enter language code: "
-                              read lang_code
+                              read -r lang_code
                               lang_filter="$lang_code" ;;
                        esac ;;
                     4) case $choice in

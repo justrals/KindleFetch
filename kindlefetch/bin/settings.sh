@@ -16,19 +16,24 @@ settings_menu() {
         echo ""
         echo "Current configuration:"
         echo "1. Documents directory: $KINDLE_DOCUMENTS"
-        echo "2. Toggle subfolders for books: $CREATE_SUBFOLDERS"
-        echo "3. Toggle compact output: $COMPACT_OUTPUT"
-        echo "4. Toggle Cloudflare DNS: $ENFORCE_DNS"
-        echo "5. Check for updates"
-        echo "6. Back to main menu"
+        if [[ "$ZLIB_AUTH" == "true" ]]; then
+            echo "2. Re-log into zlib account. Currently logged-in as $ZLIB_USERNAME"
+        else
+            echo "2. Sign into zlib account"
+        fi
+        echo "3. Toggle subfolders for books: $CREATE_SUBFOLDERS"
+        echo "4. Toggle compact output: $COMPACT_OUTPUT"
+        echo "5. Toggle Cloudflare DNS: $ENFORCE_DNS"
+        echo "6. Check for updates"
+        echo "7. Back to main menu"
         echo ""
         echo -n "Choose option: "
-        read choice
+        read -r choice
         
         case "$choice" in
             1)
                 echo -n "Enter your new Kindle downloads directory [It will be $BASE_DIR/your_directory. Only enter your_directory part.]: "
-                read new_dir
+                read -r new_dir
                 if [ -n "$new_dir" ]; then
                     KINDLE_DOCUMENTS="$BASE_DIR/$new_dir"
                     if [ ! -d "$KINDLE_DOCUMENTS" ]; then
@@ -41,6 +46,28 @@ settings_menu() {
                 fi
                 ;;
             2)
+                while true; do
+                    echo -n "Zlib email: "
+                    read -r zlib_email
+                    echo -n "Zlib password: "
+                    read -s -r zlib_password
+
+                    if zlib_login "$zlib_email" "$zlib_password"; then
+                        ZLIB_AUTH=true
+                        sleep 2
+                        break
+                    else
+                        echo -n "Zlib login failed. Do you want to try again? [Y/n]: "
+                        read -r zlib_login_retry_choice
+                        if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
+                            ZLIB_AUTH=false
+                            break
+                        fi
+                    fi
+                done
+                ;;
+
+            3)
                 if $CREATE_SUBFOLDERS; then
                     CREATE_SUBFOLDERS=false
                     echo "Subfolders disabled"
@@ -50,7 +77,7 @@ settings_menu() {
                 fi
                 save_config
                 ;;
-            3)
+            4)
                 if $COMPACT_OUTPUT; then
                     COMPACT_OUTPUT=false
                     echo "Condensed output disabled"
@@ -60,7 +87,7 @@ settings_menu() {
                 fi
                 save_config
                 ;;
-            4)
+            5)
                 if $ENFORCE_DNS; then
                     ENFORCE_DNS=false
                     echo "Cloudflare DNS disabled, using provider DNS from next Wifi reconnection"
@@ -71,11 +98,11 @@ settings_menu() {
                 fi
                 save_config
                 ;;
-            5)
+            6)
                 check_for_updates
                 update
                 ;;
-            6)
+            7)
                 break
                 ;;
 
