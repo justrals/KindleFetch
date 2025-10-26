@@ -229,10 +229,7 @@ search_books() {
                     sleep 2
                 fi
                 ;;
-            *)
-                # TODO
-                # - Make source option numbers consistent
-                
+            *)  
                 if echo "$choice" | grep -qE '^[0-9]+$'; then
                     if [ "$choice" -ge 1 ] && [ "$choice" -le "$count" ]; then
                         local book_info="$(awk -v i="$choice" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' "$TMP_DIR"/search_results.json)"
@@ -241,10 +238,10 @@ search_books() {
                         local zlib_available=false
 
                         if echo "$book_info" | grep -q "lgli"; then
-                            local lgli_available=true
+                            lgli_available=true
                         fi
                         if echo "$book_info" | grep -q "zlib"; then
-                            local zlib_available=true
+                            zlib_available=true
                         fi
 
                         if [ "$lgli_available" = false ] && [ "$zlib_available" = false ]; then
@@ -292,8 +289,10 @@ search_books() {
                                                 break
                                             fi
                                         else
+                                            echo
                                             echo -n "Do you want to sign into your zlib account? [Y/n]: "
                                             read -r zlib_login_choice
+                                            echo
 
                                             if [ "$zlib_login_choice" = "n" ] || [ "$zlib_login_choice" = "N" ]; then
                                                 ZLIB_AUTH=false
@@ -310,12 +309,12 @@ search_books() {
                                                         ZLIB_AUTH=true
                                                         save_config
 
-                                                        echo "Proceeding with zlib..."
+                                                        printf "\n\nProceeding with zlib..."
                                                         if ! zlib_download "$choice"; then
                                                             echo "Download from zlib failed."
                                                             sleep 2
                                                         else
-                                                            break
+                                                            break 2
                                                         fi
                                                     else
                                                         echo -n "Zlib login failed. Do you want to try again? [Y/n]: "
@@ -323,6 +322,7 @@ search_books() {
                                                         if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
                                                             ZLIB_AUTH=false
                                                             save_config
+                                                            break
                                                         fi
                                                     fi
                                                 done
