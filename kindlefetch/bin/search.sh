@@ -244,23 +244,23 @@ search_books() {
                             zlib_available=true
                         fi
 
-                        if [ "$lgli_available" = false ] && [ "$zlib_available" = false ]; then
-                            echo "There are no available sources for this book right now."
-                        fi
-
-                        if [ "$lgli_available" = true ]; then
-                            echo "1. lgli"
-                        fi
-                        if [ "$zlib_available" = true ]; then
-                            if [ "$ZLIB_AUTH" = true ]; then
-                                echo "2. zlib"
-                            else
-                                echo "2. zlib (Authentication needed)"
-                            fi
-                        fi
-                        echo "3. Cancel download"
-
                         while true; do
+                            if [ "$lgli_available" = false ] && [ "$zlib_available" = false ]; then
+                                echo "There are no available sources for this book right now."
+                            fi
+
+                            if [ "$lgli_available" = true ]; then
+                                echo "1. lgli"
+                            fi
+                            if [ "$zlib_available" = true ]; then
+                                if [ "$ZLIB_AUTH" = true ]; then
+                                    echo "2. zlib"
+                                else
+                                    echo "2. zlib (Authentication required)"
+                                fi
+                            fi
+                            echo "3. Cancel download"
+                            
                             echo -n "Choose source to proceed with: "
                             read -r source_choice
 
