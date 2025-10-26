@@ -119,52 +119,8 @@ zlib_login() {
         sleep 2
     else
         printf "\nLogin failed."
-        echo "$response" | head -n1
+        printf "\n$response" | head -n1
         sleep 2
         return 1
     fi
 }
-
-# download_from_zlib_by_md5() {
-#     md5="$1"
-
-#     final_url="$(curl -s -L -o /dev/null -w "%{url_effective}" "$ZLIB_URL/md5/$md5")"
-
-#     book_id="$(echo "$final_url" | sed -n 's#.*/book/\([0-9][0-9]*\)/[a-z0-9]\+#\1#p')"
-#     book_hash="$(echo "$final_url" | sed -n 's#.*/book/[0-9][0-9]*/\([a-z0-9]\+\).*#\1#p')"
-
-#     if [ -z "$book_id" ] || [ -z "$book_hash" ]; then
-#         echo "Failed to extract book info from URL: $final_url" >&2
-#         return 1
-#     fi
-
-#     response="$(curl -s -b "$ZLIB_COOKIES_FILE" \
-#         -H "Accept: application/json" \
-#         -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-#         "$ZLIB_URL/eapi/book/$book_id/$book_hash/file")"
-
-#     ddl="$(get_json_value "$response" "downloadLink" | sed 's#\\\/#/#g' | tr -d '\r\n')"
-#     filename="$(get_json_value "$response" "description" | tr -d '\r\n')"
-#     ext="$(get_json_value "$response" "extension" | tr -d '\r\n')"
-#     file_size="$(curl -sI "$ddl" | awk '/Content-Length/ {printf "%.2f MB\n", $2/1048576}')"
-
-#     if [ -z "$ddl" ]; then
-#         echo "Failed to get download link from Z-Library response."
-#         echo "$response" | head -n1
-#         return 1
-#     fi
-
-#     filename="$(sanitize_filename "${filename}.${EXT}")"
-#     filename="${filename:-book.bin}"
-
-#     echo "\nDownloading:" 
-#     echo "$filename\tSize: $file_size\tMD5: $md5"
-#     echo "Progress (Press Ctrl + c to stop):"
-
-#     if curl -L --progress-bar -b "$ZLIB_COOKIES_FILE" -o "$final_location" "$ddl"; then
-#         echo "Download successful!"
-#         echo "Saved to: $final_location"
-#     else
-#         echo "Download failed."
-#     fi
-# }

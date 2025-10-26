@@ -299,7 +299,7 @@ search_books() {
                             esac
                         done
 
-                        echo -n "Press any key to continue..."
+                        printf "\nPress any key to continue..."
                         read -n 1 -s
                     else
                         echo "Invalid selection (must be between 1 and $count)"

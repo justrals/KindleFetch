@@ -18,7 +18,7 @@ lgli_download() {
     local title="$(get_json_value "$book_info" "title")"
     local format="$(get_json_value "$book_info" "format")"
     
-    printf '\nDownloading: $title'
+    printf "\nDownloading: $title"
 
     local clean_title="$(sanitize_filename "$title" | tr -d ' ')"
 
@@ -57,7 +57,7 @@ lgli_download() {
         return 1
     fi
 
-    printf '\nFetching download page...'
+    printf '\nFetching download page...\n'
     if ! local lgli_content="$(curl -s -L "$LGLI_URL/ads.php?md5=$md5")"; then
         echo "Error: Failed to fetch book page" >&2
         return 1
@@ -76,10 +76,10 @@ lgli_download() {
     local download_url="$LGLI_URL/$download_link"
     echo "Downloading from: $download_url"
     
-    printf '\nProgress:'
+    printf '\nProgress:\n'
 
     if curl -# -L -o "$final_location" "$download_url"; then
-        printf '\nDownload successful!'
+        printf '\nDownload successful!\n'
         echo "Saved to: $final_location"
         return 0
     

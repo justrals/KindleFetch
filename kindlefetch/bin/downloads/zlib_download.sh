@@ -81,8 +81,8 @@ zlib_download() {
     fi
 
     printf '\nDownloading:\n'
-    printf "Book: $title\nExtension: $ext\nFile size: $file_size\nMD5: $md5"
-    printf "\nProgress (Press Ctrl + c to stop):"
+    printf "\nBook: $title\nExtension: $ext\nFile size: $file_size\nMD5: $md5\n"
+    printf "\nProgress (Press Ctrl + c to stop):\n"
 
     if curl -L --progress-bar -b "$ZLIB_COOKIES_FILE" -o "$final_location" "$ddl"; then
         printf "\nDownload successful!\n"
