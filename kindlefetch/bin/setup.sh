@@ -41,11 +41,13 @@ first_time_setup() {
 
             if zlib_login "$zlib_email" "$zlib_password"; then
                 ZLIB_AUTH=true
+                break
             else
                 echo -n "Zlib login failed. Do you want to try again? [Y/n]: "
                 read -r zlib_login_retry_choice
                 if [ "$zlib_login_retry_choice" = "n" ] || [ "$zlib_login_retry_choice" = "N" ]; then
                     ZLIB_AUTH=false
+                    break
                 fi
             fi
         done
