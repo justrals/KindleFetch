@@ -37,7 +37,7 @@ first_time_setup() {
             echo -n "Zlib email: "
             read -r zlib_email
             echo -n "Zlib password: "
-            read -s -r zlib_password
+            read -r zlib_password
 
             if zlib_login "$zlib_email" "$zlib_password"; then
                 ZLIB_AUTH=true
