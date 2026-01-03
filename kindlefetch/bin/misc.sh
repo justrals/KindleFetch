@@ -95,6 +95,7 @@ save_config() {
         echo "ENFORCE_DNS=\"$ENFORCE_DNS\""
         echo "ZLIB_AUTH=\"$ZLIB_AUTH\""
         echo "ZLIB_USERNAME=\"$ZLIB_USERNAME\""
+        echo "ANNAS_TLD=\"$ANNAS_TLD\""
     } > "$CONFIG_FILE"
 }
 

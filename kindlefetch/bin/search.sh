@@ -71,7 +71,7 @@ search_books() {
     fi
     
     local encoded_query=$(echo "$query" | sed 's/ /+/g')
-    local search_url="$ANNAS_URL/search?page=${page}&q=${encoded_query}${filters}"
+    local search_url="$ANNAS_URL.$ANNAS_TLD/search?page=${page}&q=${encoded_query}${filters}"
     local html_content="$(curl -s "$search_url") || html_content=$(curl -s -x "$PROXY_URL" "$search_url")"
     
     local last_page="$(echo "$html_content" | grep -o 'page=[0-9]\+"' | sort -t= -k2 -nr | head -1 | cut -d= -f2 | tr -d '"')"

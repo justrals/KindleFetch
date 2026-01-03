@@ -61,6 +61,15 @@ first_time_setup() {
         ENFORCE_DNS=false
     fi
 
+    echo -n "Enter new top level domain for annas-archive (e.g., se, li, org): "
+    read -r new_tld
+        if [ -n "$new_tld" ]; then
+            ANNAS_TLD="$new_tld"
+            echo "Domain updated to $ANNAS_URL.$ANNAS_TLD"
+        else
+            ANNAS_TLD="org"
+            echo "Invalid input. Top level domain set to default 'org'."
+        fi
     save_config
     . "$CONFIG_FILE"
 }
