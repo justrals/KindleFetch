@@ -38,6 +38,21 @@ sanitize_filename() {
     echo "$1" | sed -e 's/[^[:alnum:]\._-]/_/g' -e 's/ /_/g'
 }
 
+check_annas_archive_online() {
+    local annas_domain="$ANNAS_URL.$ANNAS_TLD"
+    
+    if curl -s -I --connect-timeout 5 "$ANNAS_URL.$ANNAS_TLD" | grep -q .; then 
+        return 0
+    else
+        echo "$annas_domain is offline or unreachable."
+        echo "Try changing the top level domain in the Settings."
+        echo ""
+        echo -n "Press any key to continue..."
+        read -r -n 1
+        return 1
+    fi
+}
+
 get_json_value() {
     echo "$1" | grep -o "\"$2\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | sed "s/\"$2\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\"/\1/" || \
     echo "$1" | grep -o "\"$2\"[[:space:]]*:[[:space:]]*[^,}]*" | sed "s/\"$2\"[[:space:]]*:[[:space:]]*\([^,}]*\)/\1/"

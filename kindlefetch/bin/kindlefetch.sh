@@ -82,7 +82,9 @@ $(load_version) | https://github.com/justrals/KindleFetch
         
         case "$choice" in
             1)
-                search_books
+                if check_annas_archive_online; then
+                    search_books
+                fi
                 ;;
             2)
                 filters_menu
