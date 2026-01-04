@@ -14,8 +14,8 @@ if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon
 fi
 
 # Variables
-API_URL="https://api.github.com/repos/colby-campbell/KindleFetch/commits"
-REPO_URL="https://github.com/colby-campbell/KindleFetch/archive/refs/heads/main.zip"
+API_URL="https://api.github.com/repos/justrals/KindleFetch/commits"
+REPO_URL="https://github.com/justrals/KindleFetch/archive/refs/heads/main.zip"
 ZIP_FILE="/mnt/us/repo.zip"
 EXTRACTED_DIR="/mnt/us/KindleFetch-main"
 INSTALL_DIR="/mnt/us/extensions/kindlefetch"
@@ -25,7 +25,6 @@ ZLIB_COOKIES_FILE="$INSTALL_DIR/bin/zlib_cookies.txt"
 TEMP_ZLIB_COOKIES_FILE="/mnt/us/zlib_cookies.txt"
 VERSION_FILE="$INSTALL_DIR/bin/.version"
 
-# just grabs the github version 
 get_version() {
     api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" "$API_URL") || {
         echo "Warning: Failed to fetch version from GitHub API" >&2
@@ -34,6 +33,7 @@ get_version() {
     }
 
     latest_sha=$(echo "$api_response" | grep -m1 '"sha":' | cut -d'"' -f4 | cut -c1-7)
+    
     if [ -n "$latest_sha" ]; then
         echo "${latest_sha}"
     fi
