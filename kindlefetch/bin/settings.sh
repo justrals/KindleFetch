@@ -106,7 +106,7 @@ settings_menu() {
                 update
                 ;;
             7)
-                echo -n "Enter new top level domain for annas-archive (e.g., se, li, org): "
+                echo -n "Enter new top level domain for annas-archive (e.g., li, org): "
                 read -r new_tld
                 if [ -n "$new_tld" ]; then
                     ANNAS_TLD="$new_tld"

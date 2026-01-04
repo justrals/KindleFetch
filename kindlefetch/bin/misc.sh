@@ -45,11 +45,15 @@ check_annas_archive_online() {
         return 0
     else
         echo "$annas_domain is offline or unreachable."
-        echo "Try changing the top level domain in the Settings."
+        echo "Try changing the top level domain in Settings."
         echo ""
-        echo -n "Press any key to continue..."
-        read -r -n 1
-        return 1
+        echo -n "Continue anyway? [y/N]: "
+        read -r continue_choice
+        if [ "$continue_choice" = "y" ] || [ "$continue_choice" = "Y" ]; then
+            return 0
+        else
+            return 1
+        fi
     fi
 }
 
