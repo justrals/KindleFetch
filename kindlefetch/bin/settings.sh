@@ -24,8 +24,8 @@ settings_menu() {
         echo "3. Toggle subfolders for books: $CREATE_SUBFOLDERS"
         echo "4. Toggle compact output: $COMPACT_OUTPUT"
         echo "5. Toggle Cloudflare DNS: $ENFORCE_DNS"
-        echo "6. Check for updates"
-        echo "7. Change the top level domain (current: $ANNAS_TLD)"
+        echo "6. Change the top level domain (current: $ANNAS_TLD)"
+        echo "7. Check for updates"
         echo "8. Back to main menu"
         echo ""
         echo -n "Choose option: "
@@ -102,10 +102,6 @@ settings_menu() {
                 save_config
                 ;;
             6)
-                check_for_updates
-                update
-                ;;
-            7)
                 echo -n "Enter new top level domain for annas-archive (e.g., li, org): "
                 read -r new_tld
                 if [ -n "$new_tld" ]; then
@@ -115,6 +111,10 @@ settings_menu() {
                     echo "Invalid input. Top level domain not changed."
                     sleep 2
                 fi
+                ;;
+            7)
+                check_for_updates
+                update
                 ;;
             8)
                 break
