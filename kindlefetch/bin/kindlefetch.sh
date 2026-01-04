@@ -44,6 +44,9 @@ main_menu() {
     if [ "${ENFORCE_DNS}" = true ];
     	then change_dns
     fi
+    if [ "${ANNAS_TLD}" = "" ];
+    	then ANNAS_TLD="org"
+    fi
     check_for_updates
     
     while true; do
