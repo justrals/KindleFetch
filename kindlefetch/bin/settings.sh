@@ -25,8 +25,8 @@ settings_menu() {
         echo "4. Toggle compact output: $COMPACT_OUTPUT"
         echo "5. Toggle Cloudflare DNS: $ENFORCE_DNS"
         echo "6. Check for updates"
-        echo "7. Back to main menu"
-        echo "8. Change annas-url top level domain (current: $ANNA_TOPLEVEL_DOMAIN)"
+        echo "7. Change the top level domain (current: $ANNAS_TLD)"
+        echo "8. Back to main menu"
         echo ""
         echo -n "Choose option: "
         read -r choice
@@ -106,20 +106,19 @@ settings_menu() {
                 update
                 ;;
             7)
-                break
-                ;;
-            8)
                 echo -n "Enter new top level domain for annas-archive (e.g., se, li, org): "
                 read -r new_tld
                 if [ -n "$new_tld" ]; then
                     ANNAS_TLD="$new_tld"
                     save_config
-                    echo "Top level domain updated to $ANNAS_URL.$ANNAS_TLD"
                 else
                     echo "Invalid input. Top level domain not changed."
+                    sleep 2
                 fi
                 ;;
-
+            8)
+                break
+                ;;
             *)
                 echo "Invalid option"
                 sleep 2

@@ -41,11 +41,13 @@ fi
 
 main_menu() {
     load_config
-    if [ "${ENFORCE_DNS}" = true ];
-    	then change_dns
+    if [ "${ENFORCE_DNS}" = true ]
+    then 
+        change_dns
     fi
-    if [ "${ANNAS_TLD}" = "" ];
-    	then ANNAS_TLD="org"
+    if [ "${ANNAS_TLD}" = "" ]
+    then 
+        ANNAS_TLD="org"
     fi
     check_for_updates
     
