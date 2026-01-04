@@ -47,7 +47,7 @@ main_menu() {
     fi
     if [ "${ANNAS_TLD}" = "" ]
     then 
-        ANNAS_TLD="org"
+        ANNAS_TLD="li"
     fi
     check_for_updates
     
