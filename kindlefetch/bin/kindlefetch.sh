@@ -16,6 +16,7 @@ BASE_DIR="/mnt/us"
 UPDATE_AVAILABLE=false
 CREATE_SUBFOLDERS=false
 COMPACT_OUTPUT=false
+RESULTS_PER_PAGE=10
 
 # Check if running on a Kindle
 if ! { [ -f "/etc/prettyversion.txt" ] || [ -d "/mnt/us" ] || pgrep "lipc-daemon" >/dev/null; }; then
@@ -39,12 +40,19 @@ fi
 . "$SCRIPT_DIR/setup.sh"
 . "$SCRIPT_DIR/settings.sh"
 
+check_for_updates
+load_config
+
+[ -z "$ANNAS_URL" ] && ANNAS_URL=$(find_working_url $ANNAS_MIRROR_URLS)
+[ -z "$LGLI_URL" ] && LGLI_URL=$(find_working_url $LGLI_MIRROR_URLS)
+[ -z "$ZLIB_URL" ] && ZLIB_URL=$(find_working_url $ZLIB_MIRROR_URLS)
+
+save_config
+
 main_menu() {
-    load_config
     if [ "${ENFORCE_DNS}" = true ];
     	then change_dns
     fi
-    check_for_updates
     
     while true; do
         clear
@@ -66,7 +74,7 @@ $(load_version) | https://github.com/justrals/KindleFetch
         echo "2. Filter search results"
         echo "3. List my books"
         echo "4. Settings"
-        echo "5. Exit"
+        echo "q. Exit"
         if $UPDATE_AVAILABLE; then
             echo ""
             echo "6. Install update"
@@ -88,7 +96,7 @@ $(load_version) | https://github.com/justrals/KindleFetch
             4)
                 settings_menu
                 ;;
-            5)
+            [qQ])
                 cleanup
                 exit 0
                 ;;

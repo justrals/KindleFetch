@@ -20,7 +20,7 @@ first_time_setup() {
         KINDLE_DOCUMENTS="$BASE_DIR/$downloads_dir"
         if [ ! -d "$KINDLE_DOCUMENTS" ]; then
             mkdir -p "$KINDLE_DOCUMENTS" || {
-                echo "Error: Failed to create directory $KINDLE_DOCUMENTS" >&2
+                echo "Failed to create directory $KINDLE_DOCUMENTS" >&2
                 exit 1
             }
         fi

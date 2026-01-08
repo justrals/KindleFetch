@@ -24,8 +24,16 @@ settings_menu() {
         echo "3. Toggle subfolders for books: $CREATE_SUBFOLDERS"
         echo "4. Toggle compact output: $COMPACT_OUTPUT"
         echo "5. Toggle Cloudflare DNS: $ENFORCE_DNS"
-        echo "6. Check for updates"
-        echo "7. Back to main menu"
+        echo "6. Search results per page: $RESULTS_PER_PAGE"
+        echo "7. Check for updates"
+        echo ""
+        echo "Current mirrors:"
+        echo "   Anna's Archive - ${ANNAS_URL}"
+        echo "   Library Genesis - ${LGLI_URL}"
+        echo "   ZLibrary - ${ZLIB_URL}"
+        echo "8. Change URLs"
+        echo ""
+        echo "q. Back to main menu"
         echo ""
         echo -n "Choose option: "
         read -r choice
@@ -38,15 +46,14 @@ settings_menu() {
                     KINDLE_DOCUMENTS="$BASE_DIR/$new_dir"
                     if [ ! -d "$KINDLE_DOCUMENTS" ]; then
                         mkdir -p "$KINDLE_DOCUMENTS" || {
-                            echo "Error: Failed to create directory $KINDLE_DOCUMENTS" >&2
-                            exit 1
+                            echo "Failed to create directory $KINDLE_DOCUMENTS" >&2
+                            return 1
                         }
                     fi
                     save_config
                 fi
                 ;;
             2)
-                while true; do
                     echo -n "Zlib email: "
                     read -r zlib_email
                     echo -n "Zlib password: "
@@ -66,9 +73,7 @@ settings_menu() {
                             break
                         fi
                     fi
-                done
                 ;;
-
             3)
                 if $CREATE_SUBFOLDERS; then
                     CREATE_SUBFOLDERS=false
@@ -101,13 +106,114 @@ settings_menu() {
                 save_config
                 ;;
             6)
+                echo -n "Enter number of search results per page: "
+                read -r new_rpp
+                if [ "$new_rpp" -gt 0 ] 2>/dev/null && [ "$new_rpp" -le 100 ]; then
+                    RESULTS_PER_PAGE="$new_rpp"
+                    save_config
+                else
+                    echo "Invalid input"
+                    sleep 2
+                fi
+                ;;
+            7)
                 check_for_updates
                 update
                 ;;
-            7)
+            8)
+                echo ""
+                echo "Which URL do you want to change?"
+                echo "1. Anna's Archive"
+                echo "2. Library Genesis"
+                echo "3. ZLibrary"
+                echo ""
+                echo "q. Cancel"
+                echo ""
+                echo -n "Choose option: "
+                read -r choice
+
+                case "$choice" in
+                    1)
+                        echo -n "Enter new URL for Anna's Archive: "
+                        read -r new_annas_url
+
+                        working_url=$(find_working_url "$new_annas_url")
+                        if [ -z "$working_url" ]; then
+                            echo "Failed to connect to ${new_annas_url}."
+                            echo -n "Are you sure you want to set this URL anyway? [y/N]: "
+                            read -r confirm
+                            if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+                                echo "URL not changed."
+                                sleep 2
+                                continue
+                            else
+                                working_url="$new_annas_url"
+                            fi
+                        fi
+
+                        ANNAS_URL="$working_url"
+                        echo "Anna's Archive URL set to $ANNAS_URL"
+                        save_config
+                        sleep 2
+                        ;;
+                    2)
+                        echo -n "Enter new URL for Library Genesis: "
+                        read -r new_lgli_url
+
+                        working_url=$(find_working_url "$new_lgli_url")
+                        if [ -z "$working_url" ]; then
+                            echo "Failed to connect to ${new_lgli_url}."
+                            echo -n "Are you sure you want to set this URL anyway? [y/N]: "
+                            read -r confirm
+                            if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+                                echo "URL not changed."
+                                sleep 2
+                                continue
+                            else
+                                working_url="$new_lgli_url"
+                            fi
+                        fi
+
+                        LGLI_URL="$working_url"
+                        echo "Library Genesis URL set to $LGLI_URL"
+                        save_config
+                        sleep 2
+                        ;;
+                    3)
+                        echo -n "Enter new URL for ZLibrary: "
+                        read -r new_zlib_url
+
+                        working_url=$(find_working_url "$new_zlib_url")
+                        if [ -z "$working_url" ]; then
+                            echo "Failed to connect to ${new_zlib_url}."
+                            echo -n "Are you sure you want to set this URL anyway? [y/N]: "
+                            read -r confirm
+                            if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+                                echo "URL not changed."
+                                sleep 2
+                                continue
+                            else
+                                working_url="$new_zlib_url"
+                            fi
+                        fi
+
+                        ZLIB_URL="$working_url"
+                        echo "ZLibrary URL set to $ZLIB_URL"
+                        save_config
+                        sleep 2
+                        ;;
+                    [qQ])
+                        continue
+                        ;;
+                    *)
+                        echo "Invalid choice"
+                        sleep 2
+                        ;;
+                esac
+                ;;
+            [qQ])
                 break
                 ;;
-
             *)
                 echo "Invalid option"
                 sleep 2

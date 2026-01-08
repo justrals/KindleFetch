@@ -65,7 +65,7 @@ list_local_books() {
         : > "$TMP_DIR"/kindle_folders.list
 
         if [ ! -d "$current_dir" ]; then
-            echo "Error: Directory '$current_dir' does not exist." >&2
+            echo "Directory '$current_dir' does not exist." >&2
             return 1
         fi
 

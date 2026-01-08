@@ -38,7 +38,7 @@ filters_menu() {
         echo "╭──────────────────────────────────────╮"
         echo "│  1. Content  2. Format  3. Language  │"
         echo "│         4. Source  5. Sort           │"
-        echo "│        Enter - Apply & Exit          │"
+        echo "│          q - Apply & Exit            │"
         echo "╰──────────────────────────────────────╯"
         echo ""
         
@@ -146,7 +146,7 @@ filters_menu() {
                            8) sort_filter="" ;;
                        esac ;;
                 esac ;;
-            "")
+            [qQ])
                 {
                     echo "content_filter=\"$content_filter\""
                     echo "ext_filter=\"$ext_filter\""

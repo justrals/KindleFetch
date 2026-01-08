@@ -4,13 +4,13 @@ zlib_download() {
     local index="$1"
     
     if [ ! -f "$TMP_DIR/search_results.json" ]; then
-        echo "Error: No search results found" >&2
+        echo "No search results found" >&2
         return 1
     fi
     
     local book_info="$(awk -v i="$index" 'BEGIN{RS="\\{"; FS="\\}"} NR==i+1{print $1}' "$TMP_DIR"/search_results.json)"
     if [ -z "$book_info" ]; then
-        echo "Error: Invalid book selection" >&2
+        echo "Invalid book selection" >&2
         return 1
     fi
     
@@ -60,14 +60,14 @@ zlib_download() {
     local filename="${filename:-book.bin}"
     
     if [ ! -w "$KINDLE_DOCUMENTS" ]; then
-        echo "Error: No write permission in $KINDLE_DOCUMENTS" >&2
+        echo "No write permission in $KINDLE_DOCUMENTS" >&2
         return 1
     fi
 
     if [ "$CREATE_SUBFOLDERS" = "true" ]; then
         local book_folder="$KINDLE_DOCUMENTS/$filename"
         if ! mkdir -p "$book_folder"; then
-            echo "Error: Failed to create folder '$book_folder'" >&2
+            echo "Failed to create folder '$book_folder'" >&2
             return 1
         fi
         local final_location="$book_folder/$filename"
@@ -76,7 +76,7 @@ zlib_download() {
     fi
 
     if [ -e "$final_location" ] && [ ! -w "$final_location" ]; then
-        echo "Error: No permission to overwrite $final_location" >&2
+        echo "No permission to overwrite $final_location" >&2
         return 1
     fi
 
@@ -89,7 +89,7 @@ zlib_download() {
         echo "Saved to: $final_location"
         return 0
     else
-        printf "\nDownload failed." >&2
+        echo "Download failed." >&2
         return 1
     fi
 }

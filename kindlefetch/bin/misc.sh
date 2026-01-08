@@ -59,7 +59,7 @@ cleanup() {
 
 get_version() {
     local api_response="$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/justrals/KindleFetch/commits")" || {
-        echo "Warning: Failed to fetch version from GitHub API" >&2
+        echo "Failed to fetch version from GitHub API" >&2
         echo "unknown"
         return
     }
@@ -95,6 +95,10 @@ save_config() {
         echo "ENFORCE_DNS=\"$ENFORCE_DNS\""
         echo "ZLIB_AUTH=\"$ZLIB_AUTH\""
         echo "ZLIB_USERNAME=\"$ZLIB_USERNAME\""
+        echo "RESULTS_PER_PAGE=\"$RESULTS_PER_PAGE\""
+        echo "ANNAS_URL=\"$ANNAS_URL\""
+        echo "LGLI_URL=\"$LGLI_URL\""
+        echo "ZLIB_URL=\"$ZLIB_URL\""
     } > "$CONFIG_FILE"
 }
 
@@ -118,9 +122,23 @@ zlib_login() {
         ZLIB_USERNAME="$zlib_username"
         sleep 2
     else
-        printf "\nLogin failed."
+        printf "\nLogin failed." >&2
         printf "\n$response" | head -n1
         sleep 2
         return 1
     fi
+}
+
+find_working_url() {
+    for url in "$@"; do
+        code=$(curl -s -o /dev/null -w '%{http_code}' \
+               --max-time 2 -L "$url")
+
+        [ "$code" = "000" ] && continue
+        [ "$code" -ge 500 ] && continue
+
+        echo "$url"
+        return 0
+    done
+    return 1
 }
