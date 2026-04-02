@@ -7,7 +7,7 @@ update() {
 
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || [ -z "$confirm" ]; then
             echo "Installing update..."
-            if curl -s https://justrals.github.io/KindleFetch/install.sh | sh; then
+            if "$CURL_BIN" -s https://justrals.github.io/KindleFetch/install.sh | sh; then
                 echo "Update installed successfully!"
                 UPDATE_AVAILABLE=false
                 VERSION=$(load_version)

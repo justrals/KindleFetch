@@ -58,7 +58,7 @@ lgli_download() {
     fi
 
     printf '\nFetching download page...\n'
-    if ! local lgli_content="$(curl -s -L "$LGLI_URL/ads.php?md5=$md5")"; then
+    if ! local lgli_content="$("$CURL_BIN" -s -L "$LGLI_URL/ads.php?md5=$md5")"; then
         echo "Failed to fetch book page" >&2
         return 1
     fi
@@ -78,7 +78,7 @@ lgli_download() {
     
     printf '\nProgress (Press Ctrl + c to stop):\n'
 
-    if curl -# -L -o "$final_location" "$download_url"; then
+    if "$CURL_BIN" -# -L -o "$final_location" "$download_url"; then
         printf '\nDownload successful!\n'
         echo "Saved to: $final_location"
         return 0

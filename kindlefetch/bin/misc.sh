@@ -14,7 +14,7 @@ change_dns () {
 }
 
 load_config() {
-    eval "$(base64 -d "$LINK_CONFIG_FILE")"
+    eval "$(base64 -d < "$LINK_CONFIG_FILE")"
     if [ -f "$CONFIG_FILE" ]; then
         . "$CONFIG_FILE"
     else
@@ -58,7 +58,7 @@ cleanup() {
 }
 
 get_version() {
-    local api_response="$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/justrals/KindleFetch/commits")" || {
+    local api_response="$("$CURL_BIN" -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/justrals/KindleFetch/commits")" || {
         echo "Failed to fetch version from GitHub API" >&2
         echo "unknown"
         return
@@ -73,7 +73,7 @@ get_version() {
 check_for_updates() {
     local current_sha="$(load_version)"
     
-    local latest_sha="$(curl -s -H "Accept: application/vnd.github.v3+json" \
+    local latest_sha="$("$CURL_BIN" -s -H "Accept: application/vnd.github.v3+json" \
         -H "Cache-Control: no-cache" \
         "https://api.github.com/repos/justrals/KindleFetch/commits?per_page=1" | \
         grep -oE '"sha": "[0-9a-f]+"' | head -1 | cut -d'"' -f4 | cut -c1-7)"
@@ -108,7 +108,7 @@ zlib_login() {
 
     printf '\nLogging in to Z-Library...'
 
-    local response="$(curl -s -c "$ZLIB_COOKIES_FILE" \
+    local response="$("$CURL_BIN" -s -c "$ZLIB_COOKIES_FILE" \
         -H "Content-Type: application/x-www-form-urlencoded" \
         -H "Accept: application/json" \
         -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
@@ -131,7 +131,7 @@ zlib_login() {
 
 find_working_url() {
     for url in "$@"; do
-        code=$(curl -s -o /dev/null -w '%{http_code}' \
+        code=$("$CURL_BIN" -s -o /dev/null -w '%{http_code}' \
                --max-time 2 -L "$url")
 
         [ "$code" = "000" ] && continue

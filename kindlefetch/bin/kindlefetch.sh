@@ -10,8 +10,12 @@ CONFIG_FILE="$SCRIPT_DIR/kindlefetch_config"
 LINK_CONFIG_FILE="$SCRIPT_DIR/link_config"
 VERSION_FILE="$SCRIPT_DIR/.version"
 ZLIB_COOKIES_FILE="$SCRIPT_DIR/zlib_cookies.txt"
+CURL_BIN="$SCRIPT_DIR/curl/curl-armhf"
 TMP_DIR="/tmp"
 BASE_DIR="/mnt/us"
+
+# Ensure curl-armhf exists
+sh "$SCRIPT_DIR/curl_check.sh"
 
 UPDATE_AVAILABLE=false
 CREATE_SUBFOLDERS=false
