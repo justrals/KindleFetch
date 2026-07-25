@@ -340,7 +340,7 @@ search_books() {
                                                     echo -n "Zlib email: "
                                                     read -r zlib_email
                                                     echo -n "Zlib password: "
-                                                    read -s -r zlib_password
+                                                    read -r zlib_password
                                                     echo
 
                                                     if zlib_login "$zlib_email" "$zlib_password"; then
