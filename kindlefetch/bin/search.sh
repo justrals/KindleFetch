@@ -11,6 +11,7 @@ display_books() {
 |_____/ \___|\__,_|_|  \___|_| |_|
 "
     echo "--------------------------------"
+    echo "Source: $(cat "$TMP_DIR"/last_search_source 2>/dev/null)"
     echo ""
 
     local books="$1"
@@ -78,6 +79,22 @@ search_books() {
     fi
     
     echo "Searching for '$query' (page $page)..."
+
+    # RK patch 2026-08-12: LibGen-first search dispatch.
+    # SEARCH_SOURCE=auto (default): LibGen first, Anna's as fallback.
+    # SEARCH_SOURCE=lgli: LibGen only. SEARCH_SOURCE=annas: Anna's only.
+    local used_lgli=false
+    if [ "$SEARCH_SOURCE" != "annas" ]; then
+        if lgli_search_fetch "$query"; then
+            used_lgli=true
+        elif [ "$SEARCH_SOURCE" = "lgli" ]; then
+            echo "No LibGen results (mirrors unreachable or no matches)."
+            sleep 2
+            return 1
+        fi
+    fi
+
+    if [ "$used_lgli" = false ]; then
 
     local filters=""
     if [ -f "$SCRIPT_DIR"/tmp/current_filter_params ]; then
@@ -187,6 +204,9 @@ search_books() {
     )"
     
     echo "$books" > "$TMP_DIR"/search_results.json
+    echo "Anna's Archive ($ANNAS_URL)" > "$TMP_DIR"/last_search_source
+
+    fi
 
     while true; do
         local query="$(cat "$TMP_DIR"/last_search_query 2>/dev/null)"
