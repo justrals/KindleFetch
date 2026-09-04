@@ -23,6 +23,7 @@ lgli_search_fetch() {
         mirror_url="${mirror_url%/}"
         [ -n "$mirror_url" ] || continue
         html_content="$(curl -f -s -L --max-time 20 \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
             "$mirror_url/index.php?req=${encoded_query}&res=25&curtab=f")" \
             || html_content=""
         [ -n "$html_content" ] || continue
